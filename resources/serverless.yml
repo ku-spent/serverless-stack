@@ -1,0 +1,32 @@
+service: spent-resources
+# app and org for use with dashboard.serverless.com
+# app: spent-resources
+# org: thtiiz
+
+frameworkVersion: '2'
+
+plugins:
+  # serverless reserve $ then use pseudo to interpolate # -> $
+  - serverless-pseudo-parameters
+  - serverless-offline
+  - serverless-iam-roles-per-function
+
+package:
+  individually: true
+
+custom: ${file(../serverless.common.yml):custom}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+
+resources:
+  - ${file(Cognito.yml)}
+  - ${file(Elasticsearch.yml)}
+
+functions:
+  auth:
+    handler: src/handlers/auth.handler

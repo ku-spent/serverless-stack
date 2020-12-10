@@ -1,0 +1,131 @@
+Resources:
+  ESUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: 'KibanaUsers'
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          DeveloperOnlyAttribute: false
+          Mutable: true
+          Required: true
+
+  ESUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: spent-es-userpool
+      UserPoolId: !Ref ESUserPool
+
+  ESIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: false
+      IdentityPoolName: 'KibanaIDPool'
+      # CognitoIdentityProviders:
+      #   - ClientId: !Ref UserPoolClient
+      #     ProviderName: !Sub "cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
+  ESAuthenticatedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action:
+              - 'es:ESHttp*'
+            Resource:
+              - '*'
+
+  ESAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRoleWithWebIdentity'
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref ESIdentityPool
+              ForAnyValue:StringLike:
+                'cognito-identity.amazonaws.com:amr': authenticated
+      ManagedPolicyArns:
+        - !Ref ESAuthenticatedPolicy
+
+  ESElasticsearchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: es.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonESCognitoAccess
+
+  ESRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref ESIdentityPool
+      Roles:
+        authenticated: !GetAtt ESAuthenticatedRole.Arn
+
+  Elasticsearch:
+    Type: 'AWS::Elasticsearch::Domain'
+    Properties:
+      ElasticsearchVersion: '7.7'
+      DomainName: 'spent'
+      ElasticsearchClusterConfig:
+        DedicatedMasterEnabled: false
+        InstanceCount: '1'
+        ZoneAwarenessEnabled: false
+        InstanceType: 't2.small.elasticsearch'
+      EBSOptions:
+        EBSEnabled: true
+        Iops: 0
+        VolumeSize: 10
+        VolumeType: 'gp2'
+      CognitoOptions:
+        Enabled: true
+        IdentityPoolId: !Ref ESIdentityPool
+        RoleArn: !GetAtt ESElasticsearchRole.Arn
+        UserPoolId: !Ref ESUserPool
+      AccessPolicies:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt ESAuthenticatedRole.Arn
+            Action:
+              - es:ESHttp*
+            Resource:
+              - !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/spent/*'
+
+Outputs:
+  ElasticsearchId:
+    Value:
+      Ref: Elasticsearch
+    Export:
+      Name: ${self:custom.spentApp}-ExtElasticsearchId
+  ElasticsearchArn:
+    Value: !GetAtt Elasticsearch.Arn
+    Export:
+      Name: ${self:custom.spentApp}-ExtElasticsearchArn
+  ElasticsearchEndpoint:
+    Value: !GetAtt Elasticsearch.DomainEndpoint
+    Export:
+      Name: ${self:custom.spentApp}-ExtElasticsearchEndpoint

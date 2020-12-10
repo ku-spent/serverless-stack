@@ -1,0 +1,17 @@
+{
+  "name": "feed-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-iam-roles-per-function": "^3.0.1",
+    "serverless-offline": "^6.8.0",
+    "serverless-pseudo-parameters": "^2.5.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

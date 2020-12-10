@@ -1,0 +1,17 @@
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or falls back to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  spentAppMapping:
+    prod: prod
+    dev: dev
+  spentApp: spent-resources-${self:custom.spentAppMapping.${self:custom.stage}, self:custom.spentAppMapping.dev}
+  bundle:
+    linting: false
+
+lambdaPolicyXRay:
+  Effect: Allow
+  Action:
+    - xray:PutTraceSegments
+    - xray:PutTelemetryRecords
+  Resource: '*'

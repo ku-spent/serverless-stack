@@ -1,0 +1,148 @@
+Resources:
+  AppUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: spent-app-userpool
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      # Schema:
+      #   - Name: email
+      #     AttributeDataType: String
+      #     DeveloperOnlyAttribute: false
+      #     Mutable: true
+      #     Required: true
+
+  AppUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: spent-app-userpool-client
+      GenerateSecret: false
+      UserPoolId: !Ref AppUserPool
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - myapp://
+      LogoutURLs:
+        - myapp://
+
+  AppUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: spent-app-userpool
+      UserPoolId: !Ref AppUserPool
+
+  AppIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: 'spent-app-identitypool'
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+        - ClientId:
+            Ref: AppUserPoolClient
+          ProviderName: !GetAtt AppUserPool.ProviderName
+
+  AppCognitoAuthorizedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action:
+              - sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref AppIdentityPool
+              ForAnyValue:StringLike:
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: 'CognitoAuthorizedPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'mobileanalytics:PutEvents'
+                  - 'cognito-sync:*'
+                  - 'cognito-identity:*'
+                Resource: '*'
+              - Effect: 'Allow'
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource: '*'
+
+  AppCognitoUnAuthorizedRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action:
+              - sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref AppIdentityPool
+              ForAnyValue:StringLike:
+                'cognito-identity.amazonaws.com:amr': unauthenticated
+      Policies:
+        - PolicyName: CognitoUnauthorizedPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'mobileanalytics:PutEvents'
+                  - 'cognito-sync:*'
+                Resource: '*'
+
+  # Assigns the roles to the Identity Pool
+  IdentityPoolRoleMapping:
+    Type: 'AWS::Cognito::IdentityPoolRoleAttachment'
+    Properties:
+      IdentityPoolId: !Ref AppIdentityPool
+      Roles:
+        authenticated: !GetAtt AppCognitoAuthorizedRole.Arn
+        unauthenticated: !GetAtt AppCognitoUnAuthorizedRole.Arn
+
+  # ApiGatewayAuthorizer:
+  #   Type: AWS::ApiGateway::Authorizer
+  #   DependsOn:
+  #     - ApiGatewayRestApi
+  #   Properties:
+  #     Name: cognito-authorizer
+  #     Type: COGNITO_USER_POOLS
+  #     IdentitySource: method.request.header.Authorization
+  #     RestApiId:
+  #       Ref: ApiGatewayRestApi
+  #     ProviderARNs:
+  #       - !GetAtt AppUserPool.Arn
+
+Outputs:
+  UserPoolId:
+    Value:
+      Ref: AppUserPool
+    Export:
+      Name: ${self:custom.spentApp}-ExtAppUserPoolId
+
+  AppCognitoAuthorizedRoleId:
+    Value:
+      Ref: AppCognitoAuthorizedRole
+    Export:
+      Name: ${self:custom.spentApp}-ExtAppCognitoAuthorizedRole

@@ -1,0 +1,78 @@
+service: spent-service-feed
+
+frameworkVersion: '2'
+
+plugins:
+  # serverless reserve $ then use pseudo to interpolate # -> $
+  - serverless-pseudo-parameters
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-iam-roles-per-function
+
+package:
+  individually: true
+
+custom: ${file(../../serverless.common.yml):custom}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+  environment:
+    # COGNITO_USERPOOL_ID: ${self:custom.CognitoUserPool.id}
+    ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
+    ES_INDEX_RSS: rss-feed-1
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+
+resources:
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}
+  # Cognito Identity Pool Policy
+  - ${file(resources/cognito-policy.yml)}
+
+  - Outputs:
+      ApiGatewayRestApiId:
+        Value:
+          Ref: ApiGatewayRestApi
+        Export:
+          Name: ${self:custom.stage}-ExtApiGatewayRestApiId
+      ApiGatewayRestApiRootResourceId:
+        Value: !GetAtt ApiGatewayRestApi.RootResourceId
+        Export:
+          Name: ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+
+functions:
+  auth:
+    handler: src/handlers/auth.handler
+  hello:
+    handler: src/handlers/hello.handler
+    events:
+      - http:
+          method: GET
+          path: feed/hello
+  feed:
+    handler: src/handlers/feed.handler
+    events:
+      - http:
+          method: GET
+          path: /feed
+          authorizer:
+            name: auth
+            resultTtlInSeconds: 3600
+            identitySource: method.request.header.Authorization
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - es:*
+        Resource:
+          - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+          - !Join
+            - ''
+            - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+              - '/*'
