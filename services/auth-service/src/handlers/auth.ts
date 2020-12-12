@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import request from 'request'
 import jwkToPem from 'jwk-to-pem'
 
-const iss = 'https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_QweZctSpb'
+const iss = 'https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_BvnpCxbAs'
 var pems: any
 
 exports.handler = function (event, context) {

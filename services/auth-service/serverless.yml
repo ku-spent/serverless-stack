@@ -1,0 +1,38 @@
+service: spent-service-auth
+
+frameworkVersion: '2'
+
+plugins:
+  # serverless reserve $ then use pseudo to interpolate # -> $
+  - serverless-pseudo-parameters
+  - serverless-plugin-typescript
+  - serverless-offline
+
+package:
+  individually: true
+
+custom: ${file(../../serverless.common.yml):custom}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  versionFunctions: false
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+
+resources:
+  - Outputs:
+      AuthorizerArn:
+        Value: ${self:custom.authorizerArn}
+        Export:
+          Name: ${self:custom.stage}-ExtAuthorizerArn
+
+functions:
+  auth:
+    handler: src/handlers/auth.handler
