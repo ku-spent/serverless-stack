@@ -5,12 +5,14 @@ custom:
   spentAppMapping:
     prod: prod
     dev: dev
+  userPoolId: ap-southeast-1_5BfiF60iL
+  userPoolArn: arn:aws:cognito-idp:ap-southeast-1:268400237357:userpool/ap-southeast-1_5BfiF60iL
   spentApp: spent-resources-${self:custom.spentAppMapping.${self:custom.stage}, self:custom.spentAppMapping.dev}
   authorizerArn: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:spent-service-auth-dev-auth
   authorizer:
     arn: ${self:custom.authorizerArn}
     managedExternally: false
-    resultTtlInSeconds: 3600
+    resultTtlInSeconds: 0
     identitySource: method.request.header.Authorization
   bundle:
     linting: false

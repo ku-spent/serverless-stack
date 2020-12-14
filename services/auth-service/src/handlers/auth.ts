@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import request from 'request'
 import jwkToPem from 'jwk-to-pem'
 
-const iss = 'https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_BvnpCxbAs'
+const iss = 'https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_5BfiF60iL'
 var pems: any
 
 exports.handler = function (event, context) {
@@ -95,6 +95,7 @@ function ValidateToken(pems, event, context) {
   //For more information on specifics of generating policy, refer to blueprint for API Gateway's Custom authorizer in Lambda console
   var policy = new AuthPolicy(principalId, awsAccountId, apiOptions)
   policy.allowMethod(AuthPolicy.HttpVerb.GET, '/feed')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/feed/*')
 
   context.succeed(policy.build())
 

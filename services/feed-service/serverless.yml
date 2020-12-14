@@ -24,6 +24,7 @@ provider:
     apiGateway: true
     lambda: true
   environment:
+    USERPOOL_ID: ${self:custom.userPoolId}
     ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
     ES_INDEX_RSS: rss-feed-1
   iamRoleStatements:
@@ -53,6 +54,13 @@ functions:
       - http:
           method: GET
           path: feed/hello
+          authorizer: ${self:custom.authorizer}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - cognito-idp:*
+        Resource:
+          - ${self:custom.userPoolArn}
   feed:
     handler: src/handlers/feed.handler
     events:
