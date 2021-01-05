@@ -126,10 +126,10 @@ Resources:
         authenticated: !GetAtt AppCognitoAuthorizedRole.Arn
         unauthenticated: !GetAtt AppCognitoUnAuthorizedRole.Arn
 
-  PinpointApp:
-    Type: AWS::Pinpoint::App
-    Properties:
-      Name: spent-app-pinpoint
+  # PinpointApp:
+  #   Type: AWS::Pinpoint::App
+  #   Properties:
+  #     Name: spent-app-pinpoint
 
   # ApiGatewayAuthorizer:
   #   Type: AWS::ApiGateway::Authorizer

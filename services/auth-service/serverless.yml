@@ -7,6 +7,7 @@ plugins:
   - serverless-pseudo-parameters
   - serverless-plugin-typescript
   - serverless-offline
+  - serverless-iam-roles-per-function
 
 package:
   individually: true
@@ -23,6 +24,8 @@ provider:
   tracing:
     apiGateway: true
     lambda: true
+  environment:
+    USER_TABLE_NAME: ${self:custom.dynamodbUserTableName}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
 
@@ -36,3 +39,21 @@ resources:
 functions:
   auth:
     handler: src/handlers/auth.handler
+  postSignup:
+    handler: src/handlers/authPostConfirm.handler
+    events:
+      - cognitoUserPool:
+          pool: ${self:custom.userPoolId}
+          trigger: PostConfirmation
+          existing: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:DescribeTable
+        Resource: 'arn:aws:dynamodb:ap-southeast-1:*:*'

@@ -1,0 +1,59 @@
+service: spent-service-personalize
+# app and org for use with dashboard.serverless.com
+# app: spent-resources
+# org: thtiiz
+
+frameworkVersion: '2'
+
+plugins:
+  # serverless reserve $ then use pseudo to interpolate # -> $
+  - serverless-pseudo-parameters
+  - serverless-plugin-typescript
+
+package:
+  individually: true
+
+custom: ${file(../../serverless.common.yml):custom}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+
+resources:
+  Resources:
+    PinpointKinesisRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: pinpoint.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: 'PinpointKinisisDataStream'
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - kinesis:PutRecords
+                    - kinesis:DescribeStream
+                  Resource:
+                    - ${self:custom.kinisisDataStreamArn}
+
+functions:
+  compute:
+    handler: src/handlers/pinpointStreaming.handler
+    events:
+      - stream:
+          type: kinesis
+          arn: arn:aws:kinesis:ap-southeast-1:268400237357:stream/spent-pinpoint-event
+          consumer: true
+          batchSize: 5
+          startingPosition: LATEST

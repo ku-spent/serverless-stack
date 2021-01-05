@@ -1,3 +1,5 @@
 node_modules
 .serverless
 .vscode
+elasticdump.sh
+rss-feed-1
