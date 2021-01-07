@@ -2,8 +2,8 @@ import boto3
 import botostubs
 import time
 
-kinesisClient = boto3.client('kinesis') # type: botostubs.kinesis
-pinpointClient = boto3.client('pinpoint') # type: botostubs.pinpoint
+kinesisClient = boto3.client('kinesis')  # type: botostubs.kinesis
+pinpointClient = boto3.client('pinpoint')  # type: botostubs.pinpoint
 
 KINESIS_STREAM_NAME = 'spent-pinpoint-event'
 
@@ -23,9 +23,9 @@ while(True):
     status = response['StreamDescription']['StreamStatus']
     if(status == 'CREATING'):
         pass
-    elif(status== 'ACTIVE'):
+    elif(status == 'ACTIVE'):
         print('Kinesis: active')
-        break;
+        break
     else:
         raise Exception('Create kinesis stream error')
 

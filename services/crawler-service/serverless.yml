@@ -1,0 +1,75 @@
+service: spent-service-crawler
+
+frameworkVersion: '2'
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-python-requirements
+  - serverless-offline
+  - serverless-iam-roles-per-function
+  - serverless-dotenv-plugin
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: python3.8
+  memorySize: 128
+  stage: ${opt:stage, 'dev'}
+  versionFunctions: false
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+  environment:
+    ELASTICSEACH_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
+    REDIS_HOST: !GetAtt ElasticCacheCluster.RedisEndpoint.Address
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+  sourceSanook: 'สนุกดอทคอม'
+  sourceThaipbs: 'thaipbs'
+  sourceMatichon: 'มติชน'
+  sourceVoicetv: 'voiceTV'
+  config:
+    CACHE_INSTANCE_SIZE: cache.t2.micro
+  lambdaVPC:
+    securityGroupIds:
+      - !GetAtt ServerlessSecurityGroup.GroupId
+    subnetIds:
+      - Ref: PrivateSubnetA
+  fullAccessElasticsearch:
+    - Effect: Allow
+      Action:
+        - es:*
+      Resource:
+        - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+        - !Join
+          - ''
+          - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+            - '/*'
+
+resources:
+  - ${file(vpc-resource.yml)}
+
+functions:
+  crawl-sanook-political:
+    handler: handler.run
+    vpc: ${self:custom.lambdaVPC}
+    timeout: 40
+    events:
+      - schedule:
+          rate: rate(2 minutes)
+          enabled: true
+          input:
+            category: การเมือง
+            source: ${self:custom.sourceSanook}
+            url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
