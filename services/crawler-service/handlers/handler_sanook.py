@@ -51,7 +51,7 @@ class SanookHandler(BaseHandler):
     def run(self):
         try:
             items = self.parse_url(self.url)
-            publish_num = 0
+            entries = []
             for item in items:
                 if(item is None):
                     continue
@@ -67,9 +67,8 @@ class SanookHandler(BaseHandler):
                     self.set_cache_link(link)
                 data = self.parse_news_link(link)
                 data = self.pre_process(item, data)
-                publish_num += 1
-                self.publish(data)
-            print(f'Publish total: {publish_num} links')
+                entries.append(data)
+            self.bulk_publish(entries)
         except Exception:
             traceback.print_exc()
             logger.info("Exception has occured", exc_info=1)

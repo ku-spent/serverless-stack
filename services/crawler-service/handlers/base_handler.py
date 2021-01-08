@@ -8,9 +8,9 @@ from constant import REDIS_HOST
 from helper.elasticsearch import es, index
 from handlers.pre_processing import dict_with_keys
 
+import redis
 import feedparser
 from dict_hash import sha256
-import redis
 
 HOURS_24 = 24 * 60 * 60
 
@@ -65,6 +65,22 @@ class BaseHandler(ABC):
         if(len(links) > 0):
             return links
         return []
+
+    def _format_bulk_body(self, entries):
+        body = []
+        for entry in entries:
+            hash_value = self.hash_payload(entry)
+            keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
+            payload = dict_with_keys(entry, keys)
+            body.append({'index': {'_id': hash_value}})
+            body.append(payload)
+        return body
+
+    def bulk_publish(self, entries):
+        if(len(entries) > 0):
+            body = self._format_bulk_body(entries)
+            self.es.bulk(index=index, doc_type='doc', body=body)
+        print(f'Message published successfully. total: {len(entries)} entries')
 
     def publish(self, payload):
         hash_value = self.hash_payload(payload)

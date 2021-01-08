@@ -30,7 +30,10 @@ provider:
 
 custom:
   pythonRequirements:
+    layer: true
+    useStaticCache: true
     dockerizePip: non-linux
+
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
@@ -62,14 +65,48 @@ resources:
 functions:
   crawl-sanook-political:
     handler: handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
     vpc: ${self:custom.lambdaVPC}
     timeout: 40
     events:
       - schedule:
-          rate: rate(2 minutes)
+          rate: rate(5 minutes)
           enabled: true
           input:
             category: การเมือง
             source: ${self:custom.sourceSanook}
             url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+
+  crawl-sanook-crime:
+    handler: handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    vpc: ${self:custom.lambdaVPC}
+    timeout: 40
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+          input:
+            category: อาชญากรรม
+            source: ${self:custom.sourceSanook}
+            url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.crime.xml
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+
+  crawl-sanook-economic:
+    handler: handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    vpc: ${self:custom.lambdaVPC}
+    timeout: 40
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+          input:
+            category: เศรษฐกิจ
+            source: ${self:custom.sourceSanook}
+            url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.economic.xml
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
