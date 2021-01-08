@@ -17,7 +17,8 @@ es = Elasticsearch(
     http_auth=awsauth,
     use_ssl=True,
     verify_certs=True,
-    connection_class=RequestsHttpConnection
+    connection_class=RequestsHttpConnection,
+    timeout=30, max_retries=10, retry_on_timeout=True
 )
 
 es.indices.create(index=index, ignore=400)

@@ -1,4 +1,5 @@
 import requests
+import threading
 from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
@@ -15,8 +16,9 @@ from dict_hash import sha256
 HOURS_24 = 24 * 60 * 60
 
 
-class BaseHandler(ABC):
+class BaseHandler(ABC, threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
         super().__init__()
         self.es = es
         pool = redis.ConnectionPool(host=REDIS_HOST, port=6379, db=0)
@@ -79,6 +81,9 @@ class BaseHandler(ABC):
     def bulk_publish(self, entries):
         if(len(entries) > 0):
             body = self._format_bulk_body(entries)
+            # with open("test.txt", "a") as f:
+            #     for item in body:
+            #         f.write("%s\n" % item)
             self.es.bulk(index=index, doc_type='doc', body=body)
         print(f'Message published successfully. total: {len(entries)} entries')
 

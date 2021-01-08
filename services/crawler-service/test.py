@@ -1,3 +1,4 @@
+from handler import run
 from constant import SOURCE_SANOOK
 # from handlers.handler_sanook import SanookHandler
 import feedparser
@@ -16,9 +17,11 @@ def test(url):
     return None, None
 
 
-pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
-cache = redis.Redis(connection_pool=pool)
-cache.setex('https://www.sanook.com/news/8329894/', HOURS_24, "True")
-print(cache.get('https://www.sanook.com/news/8329894/'))
+run({'source': 'สนุกดอทคอม'}, {})
+
+# pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
+# cache = redis.Redis(connection_pool=pool)
+# cache.setex('https://www.sanook.com/news/8329894/', HOURS_24, "True")
+# print(cache.get('https://www.sanook.com/news/8329894/'))
 # handler = SanookHandler(url='http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml', category='การเมือง')
 # handler.run()

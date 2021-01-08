@@ -1,25 +1,27 @@
 import os
 
-SOURCE_SANOOK = 'สนุกดอทคอม'
+SOURCE_SANOOK = os.getenv('SOURCE_SANOOK', 'สนุกดอทคอม')
 
-SOURCE_THAIPBS = 'thaipbs'
+SOURCE_THAIPBS = os.getenv('SOURCE_THAIPBS', 'thaipbs')
 
-SOURCE_MATICHON = 'มติชน'
+SOURCE_MATICHON = os.getenv('SOURCE_MATICHON', 'มติชน')
 
-SOURCE_VOICETV = 'voiceTV'
+SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'voiceTV')
 
 SOURCES = {
-    SOURCE_SANOOK: {'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.index.xml', 'name': 'สนุกดอทคอม'},
-    SOURCE_THAIPBS: {'url': 'https://news.thaipbs.or.th/rss/news', 'name': 'thaipbs'},
-    SOURCE_MATICHON: {'url': 'https://www.matichon.co.th/feed', 'name': 'มติชน'},
-    SOURCE_VOICETV: {'url': 'https://voicetv.co.th/rss/breaking', 'name': 'Voice TV'},
-    # {'url': 'https://www.prachachat.net/feed', 'name': 'ประชาชาติ'},
-    # {'url': 'https://www.thairath.co.th/rss/news', 'name': 'ไทยรัฐ'},
+    SOURCE_SANOOK: [
+        {'category': 'การเมือง', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml'},
+        {'category': 'อาชญากรรม', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.crime.xml'},
+        {'category': 'เศรษฐกิจ', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.economic.xml'}
+    ],
+    SOURCE_THAIPBS: [],
+    SOURCE_MATICHON: [],
+    SOURCE_VOICETV: [],
 }
 
 ELASTIC_REGION = os.getenv('AWS_REGION', 'ap-southeast-1')
 REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', 'q1efoi7143.execute-api.ap-southeast-1.amazonaws.com')
+ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', 'search-spent-eoyffh53pimfhjrbhiyf5gscqa.ap-southeast-1.es.amazonaws.com')
 ACCESS_KEY = os.getenv('ACCESS_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
 

@@ -42,14 +42,15 @@ class SanookHandler(BaseHandler):
         payload['url'] = ensureHttps(item['link'])
         payload['image'] = ensureHttps(self.get_image_from_item(item))
         payload['title'] = item['title'].strip()
-        payload['summary'] = clean_summary(item['summary_detail']['value'])
+        payload['summary'] = clean_summary(item.get('summary_detail', {}).get('value', ''))
         payload['category'] = self.category
-        payload['tags'] = data['tags']
+        payload['tags'] = data.get('tags', [])
         payload['raw_html_content'] = data['raw_html_content']
         return payload
 
     def run(self):
         try:
+            print(f'Start crawl {self.category} from {self.url}')
             items = self.parse_url(self.url)
             entries = []
             for item in items:
