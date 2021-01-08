@@ -85,7 +85,6 @@ class BaseHandler(ABC, threading.Thread):
             #     for item in body:
             #         f.write("%s\n" % item)
             self.es.bulk(index=index, doc_type='_doc', body=body)
-        print(f'Message published successfully. total: {len(entries)} entries')
 
     def publish(self, payload):
         hash_value = self.hash_payload(payload)

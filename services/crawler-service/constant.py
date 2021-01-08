@@ -10,9 +10,11 @@ SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'voiceTV')
 
 SOURCES = {
     SOURCE_SANOOK: [
-        {'category': 'การเมือง', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml'},
-        {'category': 'อาชญากรรม', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.crime.xml'},
-        {'category': 'เศรษฐกิจ', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.economic.xml'}
+        # {'category': None, 'url': 'https://www.sanook.com/news/archive/'},
+        {'category': 'บันเทิง', 'url': 'https://www.sanook.com/news/archive/entertain/'}
+        # {'category': 'การเมือง', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml'},
+        # {'category': 'อาชญากรรม', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.crime.xml'},
+        # {'category': 'เศรษฐกิจ', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.economic.xml'}
     ],
     SOURCE_THAIPBS: [],
     SOURCE_MATICHON: [],

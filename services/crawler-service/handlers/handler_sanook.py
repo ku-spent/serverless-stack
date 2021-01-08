@@ -1,3 +1,4 @@
+import re
 import traceback
 from uuid import uuid4
 from datetime import datetime
@@ -31,21 +32,49 @@ class SanookHandler(BaseHandler):
         soup = BeautifulSoup(raw_html, 'html.parser')
         data['raw_html_content'] = str(soup.find(id='EntryReader_0'))
         data['tags'] = [tag.get_text() for tag in soup.find_all(class_='TagItem')]
+        data['image'] = soup.find('div', class_='thumbnail').find('img')['src']
         data['pubDate'] = local_datetime_to_utc(datetime.strptime(soup.find('time')['datetime'], '%Y-%m-%d %H:%M'))
+        data['category'] = soup.find(class_='SidebarWidget').find('span', class_='text-color-news').get_text()
         return data
 
-    def pre_process(self, item, data):
+    def pre_process(self, data):
         payload = {}
         payload['id'] = str(uuid4())
         payload['source'] = self.source
         payload['pubDate'] = data['pubDate']
-        payload['url'] = ensureHttps(item['link'])
-        payload['image'] = ensureHttps(self.get_image_from_item(item))
-        payload['title'] = item['title'].strip()
-        payload['summary'] = clean_summary(item.get('summary_detail', {}).get('value', ''))
-        payload['category'] = self.category
+        payload['url'] = ensureHttps(data['url'])
+        payload['image'] = ensureHttps(data['image'])
+        payload['title'] = data['title'].strip()
+        payload['summary'] = clean_summary(data['summary'])
+        payload['category'] = self.category if self.category is not None else data['category']
         payload['tags'] = data.get('tags', [])
         payload['raw_html_content'] = data['raw_html_content']
+        return payload
+
+    def parse_url(self, url):
+        items = []
+        raw_html = self.get_raw_html(url)
+        soup = BeautifulSoup(raw_html, 'html.parser')
+        news_list = soup.find_all(class_='PostListWithDetail')
+        for news in news_list:
+            title = news.find(class_='text-color-news').get_text()
+            link = news.find(class_='text-color-news').find('a')['href']
+            summary = news.find(class_='description').get_text()
+            items.append({'title': title, 'summary': summary, 'link': re.sub('^(//)', 'https://', link)})
+        return items
+
+    def normalize(self, item, data):
+        payload = {}
+        payload['source'] = self.source
+        payload['pubDate'] = data['pubDate']
+        payload['url'] = item['link']
+        payload['image'] = data['image']
+        payload['title'] = item['title']
+        payload['summary'] = item['summary']
+        payload['category'] = data['category']
+        payload['tags'] = data.get('tags', [])
+        payload['raw_html_content'] = data['raw_html_content']
+
         return payload
 
     def run(self):
@@ -57,7 +86,6 @@ class SanookHandler(BaseHandler):
                 if(item is None):
                     continue
                 link = item['link']
-                print(link)
 
                 # visited
                 cache = self.get_cache_link(link)
@@ -67,9 +95,12 @@ class SanookHandler(BaseHandler):
                 else:
                     self.set_cache_link(link)
                 data = self.parse_news_link(link)
-                data = self.pre_process(item, data)
+                data = self.normalize(item, data)
+                data = self.pre_process(data)
+                print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 entries.append(data)
             self.bulk_publish(entries)
+            print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
         except Exception:
             traceback.print_exc()
             logger.info("Exception has occured", exc_info=1)
