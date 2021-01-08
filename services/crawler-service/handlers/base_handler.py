@@ -57,7 +57,7 @@ class BaseHandler(ABC, threading.Thread):
         finally:
             return text
 
-    def hash_payload(self, payload):
+    def _hash_payload(self, payload):
         keys = {'source', 'url', 'image', 'title', 'summary', 'category'}
         return sha256(dict_with_keys(payload, keys))
 
@@ -71,7 +71,7 @@ class BaseHandler(ABC, threading.Thread):
     def _format_bulk_body(self, entries):
         body = []
         for entry in entries:
-            hash_value = self.hash_payload(entry)
+            hash_value = self._hash_payload(entry)
             keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
             payload = dict_with_keys(entry, keys)
             body.append({'index': {'_id': hash_value}})
@@ -84,7 +84,7 @@ class BaseHandler(ABC, threading.Thread):
             # with open("test.txt", "a") as f:
             #     for item in body:
             #         f.write("%s\n" % item)
-            self.es.bulk(index=index, doc_type='doc', body=body)
+            self.es.bulk(index=index, doc_type='_doc', body=body)
         print(f'Message published successfully. total: {len(entries)} entries')
 
     def publish(self, payload):

@@ -72,7 +72,7 @@ functions:
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     vpc: ${self:custom.lambdaVPC}
-    timeout: 70
+    timeout: 90
     events:
       - schedule:
           rate: rate(5 minutes)

@@ -7,8 +7,11 @@ from handlers.handler_sanook import SanookHandler
 
 def run(event, context):
     current_time = datetime.datetime.now().time()
-    name = context.function_name
-    logger.info("Cron function " + name + " ran at " + str(current_time))
+    try:
+        name = context.function_name
+        logger.info("Cron function " + name + " ran at " + str(current_time))
+    except Exception:
+        pass
 
     # dispatch
     source = event.get('source')
