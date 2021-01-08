@@ -5,7 +5,7 @@ from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 
-from constant import REDIS_HOST
+from constant import BASE_MAP_CATEGORY, LOCAL, REDIS_HOST
 from helper.elasticsearch import es, index
 from handlers.pre_processing import dict_with_keys
 
@@ -15,12 +15,19 @@ from dict_hash import sha256
 
 HOURS_24 = 24 * 60 * 60
 
+ADDITIONAL_CATEGORY = {
+    'ภูมิภาค': LOCAL,
+}
+
 
 class BaseHandler(ABC, threading.Thread):
-    def __init__(self):
+    def __init__(self, url='', category='', additional_category_map={}):
         threading.Thread.__init__(self)
         super().__init__()
         self.es = es
+        self.url = url
+        self.category = category
+        self.category_map = {**BASE_MAP_CATEGORY, **additional_category_map}
         pool = redis.ConnectionPool(host=REDIS_HOST, port=6379, db=0)
         self.cache = redis.Redis(connection_pool=pool)
 
@@ -35,6 +42,12 @@ class BaseHandler(ABC, threading.Thread):
     @abstractmethod
     def run():
         pass
+
+    def normalize_category(self, category):
+        if(self.category is not None):
+            return self.category
+        else:
+            return self.category_map.get(category, LOCAL)
 
     def set_cache_link(self, link):
         self.cache.setex(link, HOURS_24, "True")
@@ -85,6 +98,7 @@ class BaseHandler(ABC, threading.Thread):
             #     for item in body:
             #         f.write("%s\n" % item)
             self.es.bulk(index=index, doc_type='_doc', body=body)
+        print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
 
     def publish(self, payload):
         hash_value = self.hash_payload(payload)

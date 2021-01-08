@@ -8,17 +8,47 @@ SOURCE_MATICHON = os.getenv('SOURCE_MATICHON', 'มติชน')
 
 SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'voiceTV')
 
+
+POLITICS = 'การเมือง'
+ECONOMIC = 'เศรษฐกิจ'
+INTERNATIONAL = 'ต่างประเทศ'
+CRIME = 'อาชญากรรม'
+SPORT = 'กีฬา'
+LOCAL = 'ในประเทศ'
+ENTERTAINMENT = 'บันเทิง'
+LIFESTYLE = 'ไลฟ์สไตล์'
+ENVIRONMENT = 'สิ่งแวดล้อม'
+TECHNOLOGY = 'เทคโนโลยี'
+SOCIAL = 'สังคม'
+LIFE = 'คุณภาพชีวิต'
+
 SOURCES = {
     SOURCE_SANOOK: [
-        # {'category': None, 'url': 'https://www.sanook.com/news/archive/'},
-        {'category': 'บันเทิง', 'url': 'https://www.sanook.com/news/archive/entertain/'}
-        # {'category': 'การเมือง', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml'},
-        # {'category': 'อาชญากรรม', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.crime.xml'},
-        # {'category': 'เศรษฐกิจ', 'url': 'http://rssfeeds.sanook.com/rss/feeds/sanook/news.economic.xml'}
+        {'category': None, 'url': 'https://www.sanook.com/news/archive/'},
+        {'category': ENTERTAINMENT, 'url': 'https://www.sanook.com/news/archive/entertain/'},
+        {'category': ECONOMIC, 'url': 'https://www.sanook.com/money/archive/'},
+        {'category': TECHNOLOGY, 'url': 'https://www.sanook.com/hitech/archive/'},
+        {'category': SPORT, 'url': 'https://www.sanook.com/sport/archive/'},
+        {'category': LIFESTYLE, 'url': 'https://www.sanook.com/travel/archive/'},
     ],
     SOURCE_THAIPBS: [],
     SOURCE_MATICHON: [],
     SOURCE_VOICETV: [],
+}
+
+BASE_MAP_CATEGORY = {
+    POLITICS: POLITICS,
+    ECONOMIC: ECONOMIC,
+    INTERNATIONAL: INTERNATIONAL,
+    CRIME: CRIME,
+    SPORT: SPORT,
+    LOCAL: LOCAL,
+    ENTERTAINMENT: ENTERTAINMENT,
+    LIFESTYLE: LIFESTYLE,
+    ENVIRONMENT: ENVIRONMENT,
+    TECHNOLOGY: TECHNOLOGY,
+    SOCIAL: SOCIAL,
+    LIFE: LIFE,
 }
 
 ELASTIC_REGION = os.getenv('AWS_REGION', 'ap-southeast-1')

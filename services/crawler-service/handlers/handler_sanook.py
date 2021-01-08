@@ -13,7 +13,7 @@ from handlers.pre_processing import clean_summary, ensureHttps, local_datetime_t
 
 class SanookHandler(BaseHandler):
     def __init__(self, url='', category=''):
-        super().__init__()
+        super().__init__(url, category, )
         self.url = url
         self.category = category
         self.source = SOURCE_SANOOK
@@ -34,7 +34,7 @@ class SanookHandler(BaseHandler):
         data['tags'] = [tag.get_text() for tag in soup.find_all(class_='TagItem')]
         data['image'] = soup.find('div', class_='thumbnail').find('img')['src']
         data['pubDate'] = local_datetime_to_utc(datetime.strptime(soup.find('time')['datetime'], '%Y-%m-%d %H:%M'))
-        data['category'] = soup.find(class_='SidebarWidget').find('span', class_='text-color-news').get_text()
+        data['category'] = soup.find(class_='SidebarWidget').find('div', class_='header').find('p').find('span').get_text()
         return data
 
     def pre_process(self, data):
@@ -46,7 +46,7 @@ class SanookHandler(BaseHandler):
         payload['image'] = ensureHttps(data['image'])
         payload['title'] = data['title'].strip()
         payload['summary'] = clean_summary(data['summary'])
-        payload['category'] = self.category if self.category is not None else data['category']
+        payload['category'] = self.normalize_category(data['category'])
         payload['tags'] = data.get('tags', [])
         payload['raw_html_content'] = data['raw_html_content']
         return payload
@@ -57,10 +57,14 @@ class SanookHandler(BaseHandler):
         soup = BeautifulSoup(raw_html, 'html.parser')
         news_list = soup.find_all(class_='PostListWithDetail')
         for news in news_list:
-            title = news.find(class_='text-color-news').get_text()
-            link = news.find(class_='text-color-news').find('a')['href']
-            summary = news.find(class_='description').get_text()
-            items.append({'title': title, 'summary': summary, 'link': re.sub('^(//)', 'https://', link)})
+            try:
+                title = news.find(class_='gb-post-standard-title').get_text()
+                link = news.find(class_='gb-post-standard-title').find('a')['href']
+                summary = news.find(class_='description').get_text()
+                items.append({'title': title, 'summary': summary, 'link': re.sub('^(//)', 'https://', link)})
+            except Exception:
+                traceback.print_exc()
+                logger.info("Exception has occured", exc_info=1)
         return items
 
     def normalize(self, item, data):
@@ -100,7 +104,7 @@ class SanookHandler(BaseHandler):
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 entries.append(data)
             self.bulk_publish(entries)
-            print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
+
         except Exception:
             traceback.print_exc()
             logger.info("Exception has occured", exc_info=1)
