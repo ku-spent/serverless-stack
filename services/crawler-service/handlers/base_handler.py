@@ -1,5 +1,6 @@
 import requests
 import threading
+from uuid import uuid4
 from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
@@ -7,7 +8,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from constant import BASE_MAP_CATEGORY, LOCAL, REDIS_HOST
 from helper.elasticsearch import es, index
-from handlers.pre_processing import dict_with_keys
+from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
 import redis
 import feedparser
@@ -38,6 +39,20 @@ class BaseHandler(ABC, threading.Thread):
     @abstractmethod
     def run():
         pass
+
+    def pre_process(self, data):
+        payload = {}
+        payload['id'] = str(uuid4())
+        payload['source'] = self.source
+        payload['pubDate'] = data['pubDate']
+        payload['url'] = ensureHttps(data['url'])
+        payload['image'] = ensureHttps(data['image'])
+        payload['title'] = data['title'].strip()
+        payload['summary'] = clean_summary(data['summary'])
+        payload['category'] = self.normalize_category(data['category'])
+        payload['tags'] = data.get('tags', [])
+        payload['raw_html_content'] = data['raw_html_content']
+        return payload
 
     def normalize_category(self, category):
         if(self.category is not None):
@@ -79,6 +94,7 @@ class BaseHandler(ABC, threading.Thread):
 
     def _format_bulk_body(self, entries):
         body = []
+        entries = [e for e in entries if e]
         for entry in entries:
             hash_value = self._hash_payload(entry)
             keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
@@ -90,7 +106,7 @@ class BaseHandler(ABC, threading.Thread):
     def bulk_publish(self, entries):
         if(len(entries) > 0):
             body = self._format_bulk_body(entries)
-            # with open("test.txt", "a") as f:
+            # with open("test.txt", "w") as f:
             #     for item in body:
             #         f.write("%s\n" % item)
             self.es.bulk(index=index, doc_type='_doc', body=body)

@@ -6,7 +6,7 @@ SOURCE_THAIPBS = os.getenv('SOURCE_THAIPBS', 'thaipbs')
 
 SOURCE_MATICHON = os.getenv('SOURCE_MATICHON', 'มติชน')
 
-SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'voiceTV')
+SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'Voice TV')
 
 
 POLITICS = 'การเมือง'
@@ -31,9 +31,12 @@ SOURCES = {
         {'category': SPORT, 'url': 'https://www.sanook.com/sport/archive/'},
         {'category': LIFESTYLE, 'url': 'https://www.sanook.com/travel/archive/'},
     ],
-    SOURCE_THAIPBS: [],
+    SOURCE_THAIPBS: [
+    ],
     SOURCE_MATICHON: [],
-    SOURCE_VOICETV: [],
+    SOURCE_VOICETV: [
+        {'category': None, 'url': 'https://voicetv.co.th/rss'}
+    ],
 }
 
 BASE_MAP_CATEGORY = {

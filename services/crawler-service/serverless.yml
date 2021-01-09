@@ -38,13 +38,17 @@ custom:
     useStaticCache: true
     dockerizePip: non-linux
 
+  crawConfig:
+    timeout: 90
+    rate: rate(5 minutes)
+
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
   sourceSanook: 'สนุกดอทคอม'
   sourceThaipbs: 'thaipbs'
   sourceMatichon: 'มติชน'
-  sourceVoicetv: 'voiceTV'
+  sourceVoicetv: 'Voice TV'
   config:
     CACHE_INSTANCE_SIZE: cache.t2.micro
   lambdaVPC:
@@ -72,59 +76,25 @@ functions:
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     vpc: ${self:custom.lambdaVPC}
-    timeout: 90
+    timeout: ${self:custom.crawConfig.timeout}
     events:
       - schedule:
-          rate: rate(5 minutes)
+          rate: ${self:custom.crawConfig.rate}
           enabled: true
           input:
             source: ${self:custom.sourceSanook}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-sanook-political:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: 60
-  #   events:
-  #     - schedule:
-  #         rate: rate(5 minutes)
-  #         enabled: true
-  #         input:
-  #           category: การเมือง
-  #           source: ${self:custom.sourceSanook}
-  #           url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.politic.xml
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-  # crawl-sanook-crime:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: 40
-  #   events:
-  #     - schedule:
-  #         rate: rate(5 minutes)
-  #         enabled: true
-  #         input:
-  #           category: อาชญากรรม
-  #           source: ${self:custom.sourceSanook}
-  #           url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.crime.xml
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-  # crawl-sanook-economic:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: 40
-  #   events:
-  #     - schedule:
-  #         rate: rate(5 minutes)
-  #         enabled: true
-  #         input:
-  #           category: เศรษฐกิจ
-  #           source: ${self:custom.sourceSanook}
-  #           url: http://rssfeeds.sanook.com/rss/feeds/sanook/news.economic.xml
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+  crawl-voiceTV:
+    handler: handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    vpc: ${self:custom.lambdaVPC}
+    timeout: ${self:custom.crawConfig.timeout}
+    events:
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceVoicetv}
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}

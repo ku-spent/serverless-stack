@@ -1,5 +1,5 @@
 from handler import run
-from constant import SOURCE_SANOOK
+from constant import SOURCE_SANOOK, SOURCE_VOICETV
 # from handlers.handler_sanook import SanookHandler
 import feedparser
 import redis
@@ -16,8 +16,8 @@ def test(url):
         return newsList, newsList[0]['link']
     return None, None
 
-
-run({'source': 'สนุกดอทคอม'}, {})
+# run({'source': SOURCE_SANOOK}, {})
+run({'source': SOURCE_VOICETV}, {})
 
 # pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
 # cache = redis.Redis(connection_pool=pool)
