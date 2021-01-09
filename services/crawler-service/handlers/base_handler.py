@@ -15,10 +15,6 @@ from dict_hash import sha256
 
 HOURS_24 = 24 * 60 * 60
 
-ADDITIONAL_CATEGORY = {
-    'ภูมิภาค': LOCAL,
-}
-
 
 class BaseHandler(ABC, threading.Thread):
     def __init__(self, url='', category='', additional_category_map={}):

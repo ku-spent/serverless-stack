@@ -5,15 +5,20 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
+from constant import LOCAL
 from logger import logger
 from constant import SOURCE_SANOOK
 from handlers.base_handler import BaseHandler
 from handlers.pre_processing import clean_summary, ensureHttps, local_datetime_to_utc
 
+ADDITIONAL_CATEGORY = {
+    'ภูมิภาค': LOCAL,
+}
+
 
 class SanookHandler(BaseHandler):
     def __init__(self, url='', category=''):
-        super().__init__(url, category, )
+        super().__init__(url, category, ADDITIONAL_CATEGORY)
         self.url = url
         self.category = category
         self.source = SOURCE_SANOOK
