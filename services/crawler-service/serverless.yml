@@ -98,3 +98,17 @@ functions:
           input:
             source: ${self:custom.sourceVoicetv}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+
+  crawl-matichon:
+    handler: handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    vpc: ${self:custom.lambdaVPC}
+    timeout: ${self:custom.crawConfig.timeout}
+    events:
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceMatichon}
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}

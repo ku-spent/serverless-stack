@@ -16,6 +16,8 @@ from dict_hash import sha256
 
 HOURS_24 = 24 * 60 * 60
 
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'}
+
 
 class BaseHandler(ABC, threading.Thread):
     def __init__(self, url='', category='', additional_category_map={}):
@@ -69,7 +71,7 @@ class BaseHandler(ABC, threading.Thread):
     def get_raw_html(self, url):
         text = ''
         try:
-            response = requests_retry_session().get(url, timeout=30)
+            response = requests_retry_session().get(url, timeout=30, headers=headers)
             # If the response was successful, no Exception will be raised
             response.raise_for_status()
         except HTTPError as http_err:

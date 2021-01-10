@@ -1,3 +1,4 @@
+import time
 import traceback
 from datetime import datetime
 
@@ -28,22 +29,27 @@ class VoiceTVHandler(BaseHandler):
         return image
 
     def parse_news_link(self, link):
-        data = {}
-        raw_html = self.get_raw_html(link)
-        soup = BeautifulSoup(raw_html, 'html.parser')
-        data['summary'] = soup.find(class_='excerpt').get_text()
-        data['raw_html_content'] = str(soup.find(class_='content-description'))
-        data['tags'] = []
-        for tag in soup.find_all(class_='details'):
-            tag = tag.find('a')
-            unwated_tag = tag.find('span')
-            if(unwated_tag):
-                unwated_tag.extract()
-            data['tags'].append(tag.get_text())
-        data['category'] = soup.find(class_='topic').get_text()
-        pubDate = soup.find(class_='date last').get_text().split('Last update')[1][:-2].strip()
-        data['pubDate'] = datetime.strptime(pubDate, '%b %d, %Y %H:%M').isoformat() + '+00:00'
-        return data
+        try:
+            data = {}
+            raw_html = self.get_raw_html(link)
+            soup = BeautifulSoup(raw_html, 'html.parser')
+            data['summary'] = soup.find(class_='excerpt').get_text()
+            data['raw_html_content'] = str(soup.find(class_='content-description'))
+            data['tags'] = []
+            for tag in soup.find_all(class_='details'):
+                tag = tag.find('a')
+                unwated_tag = tag.find('span')
+                if(unwated_tag):
+                    unwated_tag.extract()
+                data['tags'].append(tag.get_text())
+            data['category'] = soup.find(class_='topic').get_text()
+            pubDate = soup.find(class_='date last').get_text().split('Last update')[1][:-2].strip()
+            data['pubDate'] = datetime.strptime(pubDate, '%b %d, %Y %H:%M').isoformat() + '+00:00'
+            return data
+        except Exception:
+            traceback.print_exc()
+            logger.info("Exception has occured", exc_info=1)
+            return None
 
     def parse_url(self, url):
         items = []
@@ -91,7 +97,11 @@ class VoiceTVHandler(BaseHandler):
                 # not visited
                 else:
                     self.set_cache_link(link)
+
+                time.sleep(1)
                 data = self.parse_news_link(link)
+                if(data is None):
+                    continue
                 data = self.normalize(item, data)
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')

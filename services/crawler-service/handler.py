@@ -1,4 +1,5 @@
 import datetime
+from handlers.handler_matichon import MatichonHandler
 from handlers.handler_voicetv import VoiceTVHandler
 from logger import logger
 from constant import SOURCES, SOURCE_SANOOK, SOURCE_THAIPBS, SOURCE_MATICHON, SOURCE_VOICETV
@@ -24,10 +25,9 @@ def run(event, context):
     elif(source == SOURCE_THAIPBS):
         pass
     elif(source == SOURCE_MATICHON):
-        pass
+        handlers = [MatichonHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_MATICHON]]
     elif(source == SOURCE_VOICETV):
         handlers = [VoiceTVHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_VOICETV]]
-        pass
 
     for handler in handlers:
         handler.start()

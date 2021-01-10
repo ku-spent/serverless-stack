@@ -21,6 +21,7 @@ ENVIRONMENT = 'สิ่งแวดล้อม'
 TECHNOLOGY = 'เทคโนโลยี'
 SOCIAL = 'สังคม'
 LIFE = 'คุณภาพชีวิต'
+EDUCATION = 'การศึกษา'
 
 SOURCES = {
     SOURCE_SANOOK: [
@@ -33,7 +34,16 @@ SOURCES = {
     ],
     SOURCE_THAIPBS: [
     ],
-    SOURCE_MATICHON: [],
+    SOURCE_MATICHON: [
+        {'category': POLITICS, 'url': 'https://www.matichon.co.th/politics/feed'},
+        {'category': ECONOMIC, 'url': 'https://www.matichon.co.th/economy/feed'},
+        {'category': LOCAL, 'url': 'https://www.matichon.co.th/local/feed'},
+        {'category': INTERNATIONAL, 'url': 'https://www.matichon.co.th/foreign/feed'},
+        {'category': EDUCATION, 'url': 'https://www.matichon.co.th/education/feed'},
+        {'category': LIFESTYLE, 'url': 'https://www.matichon.co.th/lifestyle/feed'},
+        {'category': ENTERTAINMENT, 'url': 'https://www.matichon.co.th/entertainment/feed'},
+        {'category': SPORT, 'url': 'https://www.matichon.co.th/sport/sport-inter/feed'},
+    ],
     SOURCE_VOICETV: [
         {'category': None, 'url': 'https://voicetv.co.th/rss'}
     ],

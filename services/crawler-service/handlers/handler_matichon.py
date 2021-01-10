@@ -1,27 +1,23 @@
-import re
-import time
 import traceback
-from uuid import uuid4
-from datetime import datetime
+import time
 
+import feedparser
 from bs4 import BeautifulSoup
 
+from constant import SOURCE_MATICHON, SOURCE_VOICETV
 from logger import logger
-from constant import LOCAL, SOURCE_SANOOK
 from handlers.base_handler import BaseHandler
-from handlers.pre_processing import clean_summary, ensureHttps, local_datetime_to_utc
 
 ADDITIONAL_CATEGORY = {
-    'ภูมิภาค': LOCAL,
 }
 
 
-class SanookHandler(BaseHandler):
+class MatichonHandler(BaseHandler):
     def __init__(self, url='', category=''):
         super().__init__(url, category, ADDITIONAL_CATEGORY)
         self.url = url
         self.category = category
-        self.source = SOURCE_SANOOK
+        self.source = SOURCE_MATICHON
 
     def get_image_from_item(self, item):
         image = ''
@@ -36,11 +32,19 @@ class SanookHandler(BaseHandler):
             data = {}
             raw_html = self.get_raw_html(link)
             soup = BeautifulSoup(raw_html, 'html.parser')
-            data['raw_html_content'] = str(soup.find(id='EntryReader_0'))
-            data['tags'] = [tag.get_text() for tag in soup.find_all(class_='TagItem')]
-            data['image'] = soup.find('div', class_='thumbnail').find('img')['src']
-            data['pubDate'] = local_datetime_to_utc(datetime.strptime(soup.find('time')['datetime'], '%Y-%m-%d %H:%M'))
-            data['category'] = soup.find(class_='SidebarWidget').find('div', class_='header').find('p').find('span').get_text()
+            content = soup.find(class_='td-post-content')
+            image_tag = content.find(class_='td-post-featured-image')
+            data['image'] = image_tag.find('a')['href']
+            if(image_tag):
+                image_tag.extract()
+            data['raw_html_content'] = str(content.find_all('p'))
+            data['tags'] = []
+            tags_elem = soup.find(class_='td-post-source-tags')
+            if(tags_elem):
+                for tag in tags_elem.find_all('li'):
+                    data['tags'].append(tag.get_text())
+            data['tags'] = [tag for tag in data['tags'] if tag != 'แท็ก']
+            data['category'] = soup.find(class_='ud-post-category-title').get_text()
             return data
         except Exception:
             traceback.print_exc()
@@ -49,15 +53,14 @@ class SanookHandler(BaseHandler):
 
     def parse_url(self, url):
         items = []
-        raw_html = self.get_raw_html(url)
-        soup = BeautifulSoup(raw_html, 'html.parser')
-        news_list = soup.find_all(class_='PostListWithDetail')
+        feed = feedparser.parse(url)
+        news_list = feed.entries
         for news in news_list:
             try:
-                title = news.find(class_='gb-post-standard-title').get_text()
-                link = news.find(class_='gb-post-standard-title').find('a')['href']
-                summary = news.find(class_='description').get_text()
-                items.append({'title': title, 'summary': summary, 'link': re.sub('^(//)', 'https://', link)})
+                title = news['title']
+                link = news['link']
+                pubDate = time.strftime('%Y-%m-%dT%H:%M:%SZ', news['published_parsed'])
+                items.append({'title': title, 'summary': title, 'link': link, 'pubDate': pubDate})
             except Exception:
                 traceback.print_exc()
                 logger.info("Exception has occured", exc_info=1)
@@ -66,7 +69,7 @@ class SanookHandler(BaseHandler):
     def normalize(self, item, data):
         payload = {}
         payload['source'] = self.source
-        payload['pubDate'] = data['pubDate']
+        payload['pubDate'] = item['pubDate']
         payload['url'] = item['link']
         payload['image'] = data['image']
         payload['title'] = item['title']
