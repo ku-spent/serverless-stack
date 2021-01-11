@@ -2,11 +2,11 @@ import boto3
 from requests_aws4auth import AWS4Auth
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 
-from constant import ELASTIC_REGION, ELASTICSEACH_HOST, ACCESS_KEY, SECRET_KEY
+from constant import ELASTIC_REGION, ELASTICSEACH_HOST, ACCESS_KEY, SECRET_KEY, ES_INDEX
 
 
 service = 'es'
-index = 'rss-feed-2'
+index = ES_INDEX
 credentials = boto3.Session().get_credentials()
 host = ELASTICSEACH_HOST
 awsauth = AWS4Auth(ACCESS_KEY, SECRET_KEY, ELASTIC_REGION, service)

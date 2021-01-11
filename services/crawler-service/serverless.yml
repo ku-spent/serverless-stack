@@ -29,6 +29,7 @@ provider:
     SOURCE_THAIPBS: ${self:custom.sourceThaipbs}
     SOURCE_MATICHON: ${self:custom.sourceMatichon}
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
+    ES_INDEX: ${self:custom.es.index}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
 
@@ -41,6 +42,9 @@ custom:
   crawConfig:
     timeout: 90
     rate: rate(5 minutes)
+
+  es:
+    index: 'rss-feed-3'
 
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}

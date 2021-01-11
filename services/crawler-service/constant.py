@@ -8,7 +8,6 @@ SOURCE_MATICHON = os.getenv('SOURCE_MATICHON', 'มติชน')
 
 SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'Voice TV')
 
-
 POLITICS = 'การเมือง'
 ECONOMIC = 'เศรษฐกิจ'
 INTERNATIONAL = 'ต่างประเทศ'
@@ -69,6 +68,7 @@ REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
 ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', 'search-spent-eoyffh53pimfhjrbhiyf5gscqa.ap-southeast-1.es.amazonaws.com')
 ACCESS_KEY = os.getenv('ACCESS_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
+ES_INDEX = os.getenv('ES_INDEX', 'rss-feed-3')
 
 # TEXT_CLASSIFY_ENDPOINT = os.getenv('TEXT_CLASSIFY_ENDPOINT')
 # NEWS_TABLE_NAME = os.getenv('NEWS_TABLE_NAME')

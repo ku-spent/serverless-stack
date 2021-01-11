@@ -83,8 +83,9 @@ class BaseHandler(ABC, threading.Thread):
         finally:
             return text
 
-    def _hash_payload(self, payload):
-        keys = {'source', 'url', 'image', 'title', 'summary', 'category'}
+    def hash_payload(self, payload):
+        # keys = {'source', 'url', 'image', 'title', 'summary', 'category'}
+        keys = {'url'}
         return sha256(dict_with_keys(payload, keys))
 
     def parse_url(self, url):
@@ -94,20 +95,21 @@ class BaseHandler(ABC, threading.Thread):
             return links
         return []
 
-    def _format_bulk_body(self, entries):
+    def _format_bulk_body(self, entries, hash_func):
         body = []
         entries = [e for e in entries if e]
         for entry in entries:
-            hash_value = self._hash_payload(entry)
+            hash_value = hash_func(entry)
             keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
             payload = dict_with_keys(entry, keys)
             body.append({'index': {'_id': hash_value}})
             body.append(payload)
         return body
 
-    def bulk_publish(self, entries):
+    def bulk_publish(self, entries, hash_func):
+        hash_func = hash_func if hash_func is not None else self._hash_payload
         if(len(entries) > 0):
-            body = self._format_bulk_body(entries)
+            body = self._format_bulk_body(entries, hash_func)
             # with open("test.txt", "w") as f:
             #     for item in body:
             #         f.write("%s\n" % item)

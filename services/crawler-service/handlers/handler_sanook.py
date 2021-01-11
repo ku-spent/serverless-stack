@@ -36,7 +36,13 @@ class SanookHandler(BaseHandler):
             data = {}
             raw_html = self.get_raw_html(link)
             soup = BeautifulSoup(raw_html, 'html.parser')
-            data['raw_html_content'] = str(soup.find(id='EntryReader_0'))
+            content_tag = soup.find(id='EntryReader_0')
+            # ไม่เอาเพราะไม่ใช่เนื้อหาข่าว
+            content_ul_tag = content_tag.find_all('ul')
+            if(content_ul_tag):
+                for ul_tag in content_ul_tag:
+                    ul_tag.extract()
+            data['raw_html_content'] = str(content_tag)
             data['tags'] = [tag.get_text() for tag in soup.find_all(class_='TagItem')]
             data['image'] = soup.find('div', class_='thumbnail').find('img')['src']
             data['pubDate'] = local_datetime_to_utc(datetime.strptime(soup.find('time')['datetime'], '%Y-%m-%d %H:%M'))
@@ -103,7 +109,7 @@ class SanookHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 entries.append(data)
-            self.bulk_publish(entries)
+            self.bulk_publish(entries, self.hash_payload)
 
         except Exception:
             traceback.print_exc()

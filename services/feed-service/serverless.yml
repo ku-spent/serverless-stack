@@ -26,7 +26,7 @@ provider:
   environment:
     USERPOOL_ID: ${self:custom.userPoolId}
     ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-    ES_INDEX_RSS: rss-feed-2
+    ES_INDEX_RSS: rss-feed-3
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
 

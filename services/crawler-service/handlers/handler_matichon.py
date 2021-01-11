@@ -1,5 +1,7 @@
+from handlers.pre_processing import dict_with_keys
 import traceback
 import time
+from dict_hash.dict_hash import sha256
 
 import feedparser
 from bs4 import BeautifulSoup
@@ -37,7 +39,14 @@ class MatichonHandler(BaseHandler):
             data['image'] = image_tag.find('a')['href']
             if(image_tag):
                 image_tag.extract()
-            data['raw_html_content'] = str(content.find_all('p'))
+            raw_html_content = soup.new_tag('div')
+            for p in content.find_all('p'):
+                # ถ้าเจอคำว่า 'อ่านข่าวที่เกี่ยวข้อง' หลังจากนี้ก็จะไม่เอาแล้ว
+                if(p.get_text().strip() == 'อ่านข่าวที่เกี่ยวข้อง'):
+                    break
+                else:
+                    raw_html_content.append(p)
+            data['raw_html_content'] = str(raw_html_content)
             data['tags'] = []
             tags_elem = soup.find(class_='td-post-source-tags')
             if(tags_elem):
@@ -80,6 +89,11 @@ class MatichonHandler(BaseHandler):
 
         return payload
 
+    def hash_payload(self, payload):
+        keys = {'url'}
+        to_hash = {'url': payload['url'].split('/')[-1]}
+        return sha256(dict_with_keys(to_hash, keys))
+
     def run(self):
         try:
             print(f'Start crawl {self.category} from {self.url}')
@@ -106,7 +120,7 @@ class MatichonHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 entries.append(data)
-            self.bulk_publish(entries)
+            self.bulk_publish(entries, self.hash_payload)
 
         except Exception:
             traceback.print_exc()

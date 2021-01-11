@@ -106,7 +106,7 @@ class VoiceTVHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 entries.append(data)
-            self.bulk_publish(entries)
+            self.bulk_publish(entries, self.hash_payload)
 
         except Exception:
             traceback.print_exc()

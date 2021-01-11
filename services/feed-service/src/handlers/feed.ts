@@ -10,9 +10,6 @@ const elasticClient = new elasticsearch.Client({
 })
 
 const feed: Handler = async (event, context) => {
-  console.log(event?.requestContext?.authorizer)
-  console.log(event?.requestContext?.identity)
-  console.log(event?.requestContext)
   const { from = 0, size = 5, query, queryField = '_' } = event?.queryStringParameters
   const _query = query
     ? { match: { [queryField]: { query } } }
