@@ -96,6 +96,10 @@ function ValidateToken(pems, event, context) {
   var policy = new AuthPolicy(principalId, awsAccountId, apiOptions)
   policy.allowMethod(AuthPolicy.HttpVerb.GET, '/feed')
   policy.allowMethod(AuthPolicy.HttpVerb.GET, '/feed/*')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/news')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/news/*')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/search')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/search/*')
 
   context.succeed(policy.build())
 

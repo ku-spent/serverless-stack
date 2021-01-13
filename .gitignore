@@ -3,5 +3,5 @@ node_modules
 .vscode
 elasticdump.sh
 rss-feed-1
-.env
+.env*
 __pycache__

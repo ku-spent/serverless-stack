@@ -8,6 +8,7 @@ plugins:
   - serverless-plugin-typescript
   - serverless-offline
   - serverless-iam-roles-per-function
+  - serverless-dotenv-plugin
 
 package:
   individually: true
@@ -61,12 +62,30 @@ functions:
           - cognito-idp:*
         Resource:
           - ${self:custom.userPoolArn}
-  feed:
-    handler: src/handlers/feed.handler
+  news:
+    handler: src/handlers/news.handler
     events:
       - http:
           method: GET
-          path: /feed
+          path: /news
+          authorizer: ${self:custom.authorizer}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - es:*
+        Resource:
+          - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+          - !Join
+            - ''
+            - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+              - '/*'
+
+  search:
+    handler: src/handlers/search.handler
+    events:
+      - http:
+          method: GET
+          path: /search
           authorizer: ${self:custom.authorizer}
     iamRoleStatements:
       - Effect: Allow
