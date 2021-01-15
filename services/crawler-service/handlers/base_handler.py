@@ -49,7 +49,7 @@ class BaseHandler(ABC, threading.Thread):
         payload = {}
         payload['id'] = str(uuid4())
         payload['source'] = self.source
-        payload['pubDate'] = data['pubDate'].isoformat() if(isinstance(data['pubDate'], datetime.date)) else data['pubDate']
+        payload['pubDate'] = data['pubDate'].isoformat() if(isinstance(data['pubDate'], datetime)) else data['pubDate']
         payload['url'] = ensureHttps(data['url'])
         payload['image'] = ensureHttps(data['image'])
         payload['title'] = data['title'].strip()
