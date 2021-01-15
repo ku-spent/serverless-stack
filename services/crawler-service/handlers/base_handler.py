@@ -118,7 +118,7 @@ class BaseHandler(ABC, threading.Thread):
             # with open("test.txt", "w") as f:
             #     for item in body:
             #         f.write("%s\n" % item)
-            self.es.bulk(index=index, doc_type='_doc', body=body)
+            # self.es.bulk(index=index, doc_type='_doc', body=body)
         print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
 
     def publish(self, payload):
