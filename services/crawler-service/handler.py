@@ -12,7 +12,7 @@ def build_handlers(Handler, Source):
     return [Handler(url=source['url'], category=source['category']) for source in Source]
 
 
-def run(event, context):
+def run(event, context, callback):
     current_time = datetime.datetime.now().time()
     try:
         name = context.function_name
@@ -21,22 +21,33 @@ def run(event, context):
         pass
 
     # dispatch
-    source = event.get('source')
-    print(f'Start crawl source: {source}')
-    handlers = []
+    try:
+        source = event.get('source')
+        print(f'Start send payloads: {source}')
+        handlers = []
 
-    if(source == SOURCE_SANOOK):
-        handlers = [SanookHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_SANOOK]]
-    elif(source == SOURCE_MATICHON):
-        handlers = [MatichonHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_MATICHON]]
-    elif(source == SOURCE_VOICETV):
-        handlers = [VoiceTVHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_VOICETV]]
-    elif(source == SOURCE_BEARTAI):
-        handlers = build_handlers(BeartaiHandler, SOURCES[SOURCE_BEARTAI])
+        if(source == SOURCE_SANOOK):
+            handlers = [SanookHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_SANOOK]]
+        elif(source == SOURCE_MATICHON):
+            handlers = [MatichonHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_MATICHON]]
+        elif(source == SOURCE_VOICETV):
+            handlers = [VoiceTVHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_VOICETV]]
+        elif(source == SOURCE_BEARTAI):
+            handlers = build_handlers(BeartaiHandler, SOURCES[SOURCE_BEARTAI])
 
-    for handler in handlers:
-        handler.start()
-    for handler in handlers:
-        handler.join()
+        for handler in handlers:
+            handler.start()
+        for handler in handlers:
+            handler.join()
 
-    print('Complete crawler service')
+        if(len(handlers) > 0):
+            payloads = handlers[0].payloads
+        else:
+            payloads = []
+
+        callback(None, payloads)
+
+    except Exception as e:
+        callback(str(e))
+    finally:
+        print('Complete crawler service')

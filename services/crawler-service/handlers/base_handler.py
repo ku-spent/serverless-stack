@@ -20,6 +20,8 @@ headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 
 class BaseHandler(ABC, threading.Thread):
+    payloads = []
+
     def __init__(self, url='', category='', additional_category_map={}):
         threading.Thread.__init__(self)
         super().__init__()
@@ -110,10 +112,12 @@ class BaseHandler(ABC, threading.Thread):
         hash_func = hash_func if hash_func is not None else self._hash_payload
         if(len(entries) > 0):
             body = self._format_bulk_body(entries, hash_func)
+            for e in body:
+                BaseHandler.payloads.append(e)
             # with open("test.txt", "w") as f:
             #     for item in body:
             #         f.write("%s\n" % item)
-            self.es.bulk(index=index, doc_type='_doc', body=body)
+            # self.es.bulk(index=index, doc_type='_doc', body=body)
         print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
 
     def publish(self, payload):
