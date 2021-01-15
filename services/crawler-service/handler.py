@@ -46,6 +46,7 @@ def run(event, context):
         else:
             payloads = []
 
+        print(len(payloads))
         return {'payloads': payloads}
 
     except Exception as e:

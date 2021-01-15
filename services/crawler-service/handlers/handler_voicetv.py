@@ -44,7 +44,7 @@ class VoiceTVHandler(BaseHandler):
                 data['tags'].append(tag.get_text())
             data['category'] = soup.find(class_='topic').get_text()
             pubDate = soup.find(class_='date last').get_text().split('Last update')[1][:-2].strip()
-            data['pubDate'] = datetime.strptime(pubDate, '%b %d, %Y %H:%M').isoformat() + '+00:00'
+            data['pubDate'] = datetime.strptime(pubDate, '%b %d, %Y %H:%M').isoformat()
             return data
         except Exception:
             traceback.print_exc()
