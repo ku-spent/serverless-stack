@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
+from datetime import datetime
 
 from constant import BASE_MAP_CATEGORY, LOCAL, REDIS_HOST
 from helper.elasticsearch import es, index
@@ -48,7 +49,7 @@ class BaseHandler(ABC, threading.Thread):
         payload = {}
         payload['id'] = str(uuid4())
         payload['source'] = self.source
-        payload['pubDate'] = data['pubDate']
+        payload['pubDate'] = data['pubDate'].isoformat() if(isinstance(data['pubDate'], datetime.date)) else data['pubDate']
         payload['url'] = ensureHttps(data['url'])
         payload['image'] = ensureHttps(data['image'])
         payload['title'] = data['title'].strip()
@@ -117,7 +118,7 @@ class BaseHandler(ABC, threading.Thread):
             # with open("test.txt", "w") as f:
             #     for item in body:
             #         f.write("%s\n" % item)
-            # self.es.bulk(index=index, doc_type='_doc', body=body)
+            self.es.bulk(index=index, doc_type='_doc', body=body)
         print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
 
     def publish(self, payload):
