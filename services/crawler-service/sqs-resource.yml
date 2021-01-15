@@ -3,3 +3,4 @@ Resources:
     Type: 'AWS::SQS::Queue'
     Properties:
       QueueName: 'CrawlerQueue'
+      VisibilityTimeout: 120
