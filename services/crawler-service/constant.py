@@ -53,9 +53,9 @@ SOURCES = {
     SOURCE_BEARTAI: [
         {'category': TECHNOLOGY, 'url': 'https://www.beartai.com/category/news'},
         {'category': MOVIE, 'url': 'https://www.beartai.com/category/lifestyle/movies'},
-        # {'category': MOVIE, 'url': 'https://www.beartai.com/category/lifestyle/tv-series'},
-        # {'category': MUSIC, 'url': 'https://www.beartai.com/category/lifestyle/music-lifestyle'},
-        # {'category': ENTERTAINMENT, 'url': 'https://www.beartai.com/category/lifestyle/entertainment'},
+        {'category': MOVIE, 'url': 'https://www.beartai.com/category/lifestyle/tv-series'},
+        {'category': MUSIC, 'url': 'https://www.beartai.com/category/lifestyle/music-lifestyle'},
+        {'category': ENTERTAINMENT, 'url': 'https://www.beartai.com/category/lifestyle/entertainment'},
     ]
     
 }

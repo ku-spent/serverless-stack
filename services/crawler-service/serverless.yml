@@ -119,6 +119,7 @@ functions:
     handler: handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
+    vpc: ${self:custom.lambdaVPC}
     timeout: ${self:custom.crawConfig.timeout}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
   send:
