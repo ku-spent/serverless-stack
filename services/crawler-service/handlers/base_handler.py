@@ -33,8 +33,12 @@ class BaseHandler(ABC, threading.Thread):
         self.url = url
         self.category = category
         self.category_map = {**BASE_MAP_CATEGORY, **additional_category_map}
-        pool = redis.ConnectionPool(host=REDIS_HOST, port=6379, db=0)
-        self.cache = redis.Redis(connection_pool=pool)
+        dynamoDB = boto3.resource('dynamodb')
+
+        # dynamoDB = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
+        self.newsUrlTable = dynamoDB.Table('NewsUrl')
+        # pool = redis.ConnectionPool(host=REDIS_HOST, port=6379, db=0)
+        # self.cache = redis.Redis(connection_pool=pool)
 
     @abstractmethod
     def parse_news_link():
@@ -69,10 +73,21 @@ class BaseHandler(ABC, threading.Thread):
             return self.category_map.get(category, LOCAL)
 
     def set_cache_link(self, link):
-        self.cache.setex(link, HOURS_24, "True")
+        self.newsUrlTable.put_item(
+            Item={
+                'url': link
+            }
+        )
+        # self.cache.setex(link, HOURS_24, "True")
 
     def get_cache_link(self, link):
-        return self.cache.get(link)
+        response = self.newsUrlTable.get_item(
+            Key={
+                'url': link
+            }
+        )
+        return response.get('Item')
+        # return self.cache.get(link)
 
     def get_raw_html(self, url):
         text = ''
@@ -129,11 +144,11 @@ class BaseHandler(ABC, threading.Thread):
         hash_value = hash_func(payload)
         keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
         body = {'_id': hash_value, 'payload': dict_with_keys(payload, keys)} 
-        response = sqs.send_message(
-            QueueUrl=QUEUE_URL,
-            MessageBody=json.dumps({'_id': hash_value, 'payload': body})
-        )
-        print(response['MessageId'])
+        # response = sqs.send_message(
+        #     QueueUrl=QUEUE_URL,
+        #     MessageBody=json.dumps({'_id': hash_value, 'payload': body})
+        # )
+        # print(response['MessageId'])
 
 
 def requests_retry_session(

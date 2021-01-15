@@ -105,7 +105,7 @@ class BeartaiHandler(BaseHandler):
                 else:
                     self.set_cache_link(link)
 
-                time.sleep(1)
+                time.sleep(0.2)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue

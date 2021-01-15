@@ -39,8 +39,7 @@ provider:
     - Effect: Allow
       Action:
         - sqs:*
-      Resource:
-        Fn::GetAtt: ${self:custom.sqs.arn}
+      Resource: ${self:custom.sqs.arn}
     - Effect: Allow
       Action:
         - sqs:*
@@ -71,7 +70,10 @@ custom:
 
   dynamodb:
     start:
-      migration: true
+      migration:
+        dir: 'dynamodbMigrations'
+        table_prefix: ''
+        table_suffix: ''
     stages:
       - dev
 
