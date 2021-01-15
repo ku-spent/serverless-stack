@@ -32,7 +32,7 @@ provider:
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     ES_INDEX: ${self:custom.es.index}
-    QUEUE_URL: { Ref: NewSQSQueue }
+    QUEUE_URL: { Ref: CrawlerQueue }
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
