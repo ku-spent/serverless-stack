@@ -82,21 +82,25 @@ stepFunctions:
     crawler:
       events:
         - schedule:
+            name: crawler-${self:custom.sourceSanook}
             rate: ${self:custom.crawConfig.rate}
             enabled: true
             input:
               source: ${self:custom.sourceSanook}
         - schedule:
+            name: crawler-${self:custom.sourceMatichon}
             rate: ${self:custom.crawConfig.rate}
             enabled: true
             input:
               source: ${self:custom.sourceMatichon}
         - schedule:
+            name: crawler-${self:custom.sourceVoicetv}
             rate: ${self:custom.crawConfig.rate}
             enabled: true
             input:
               source: ${self:custom.sourceVoicetv}
         - schedule:
+            name: crawler-${self:custom.sourceBeartai}
             rate: ${self:custom.crawConfig.rate}
             enabled: true
             input:
