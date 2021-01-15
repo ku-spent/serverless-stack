@@ -8,6 +8,8 @@ SOURCE_MATICHON = os.getenv('SOURCE_MATICHON', 'มติชน')
 
 SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'Voice TV')
 
+SOURCE_BEARTAI = os.getenv('SOURCE_BEARTAI', 'beartai')
+
 POLITICS = 'การเมือง'
 ECONOMIC = 'เศรษฐกิจ'
 INTERNATIONAL = 'ต่างประเทศ'
@@ -21,6 +23,8 @@ TECHNOLOGY = 'เทคโนโลยี'
 SOCIAL = 'สังคม'
 LIFE = 'คุณภาพชีวิต'
 EDUCATION = 'การศึกษา'
+MOVIE = 'ภาพยนตร์'
+MUSIC = 'เพลง'
 
 SOURCES = {
     SOURCE_SANOOK: [
@@ -46,6 +50,14 @@ SOURCES = {
     SOURCE_VOICETV: [
         {'category': None, 'url': 'https://voicetv.co.th/rss'}
     ],
+    SOURCE_BEARTAI: [
+        {'category': TECHNOLOGY, 'url': 'https://www.beartai.com/category/news'},
+        {'category': MOVIE, 'url': 'https://www.beartai.com/category/lifestyle/movies'},
+        {'category': MOVIE, 'url': 'https://www.beartai.com/category/lifestyle/tv-series'},
+        {'category': MUSIC, 'url': 'https://www.beartai.com/category/lifestyle/music-lifestyle'},
+        {'category': ENTERTAINMENT, 'url': 'https://www.beartai.com/category/lifestyle/entertainment'},
+    ]
+    
 }
 
 BASE_MAP_CATEGORY = {
@@ -61,6 +73,9 @@ BASE_MAP_CATEGORY = {
     TECHNOLOGY: TECHNOLOGY,
     SOCIAL: SOCIAL,
     LIFE: LIFE,
+    EDUCATION: EDUCATION,
+    MOVIE: MOVIE,
+    MUSIC: MUSIC,
 }
 
 ELASTIC_REGION = os.getenv('AWS_REGION', 'ap-southeast-1')

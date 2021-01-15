@@ -5,8 +5,9 @@ from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
+from datetime import datetime, time
 
-from constant import BASE_MAP_CATEGORY, LOCAL, REDIS_HOST
+from constant import BASE_MAP_CATEGORY, REDIS_HOST
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
@@ -20,6 +21,8 @@ headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 
 class BaseHandler(ABC, threading.Thread):
+    payloads = []
+
     def __init__(self, url='', category='', additional_category_map={}):
         threading.Thread.__init__(self)
         super().__init__()
@@ -46,7 +49,7 @@ class BaseHandler(ABC, threading.Thread):
         payload = {}
         payload['id'] = str(uuid4())
         payload['source'] = self.source
-        payload['pubDate'] = data['pubDate']
+        payload['pubDate'] = data['pubDate'].isoformat() if(isinstance(data['pubDate'], time)) else data['pubDate']
         payload['url'] = ensureHttps(data['url'])
         payload['image'] = ensureHttps(data['image'])
         payload['title'] = data['title'].strip()
@@ -79,7 +82,7 @@ class BaseHandler(ABC, threading.Thread):
         except Exception as err:
             print(f'Other error occurred: {err}')  # Python 3.6
         else:
-            text = response.text
+            text = response.content
         finally:
             return text
 
@@ -110,10 +113,12 @@ class BaseHandler(ABC, threading.Thread):
         hash_func = hash_func if hash_func is not None else self._hash_payload
         if(len(entries) > 0):
             body = self._format_bulk_body(entries, hash_func)
+            for e in body:
+                BaseHandler.payloads.append(e)
             # with open("test.txt", "w") as f:
             #     for item in body:
             #         f.write("%s\n" % item)
-            self.es.bulk(index=index, doc_type='_doc', body=body)
+            # self.es.bulk(index=index, doc_type='_doc', body=body)
         print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
 
     def publish(self, payload):

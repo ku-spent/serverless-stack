@@ -35,7 +35,7 @@ def dict_with_keys(d, keys):
 
 
 def clean_summary(text):
-    return re.sub(SUMMARY_CLEAN, '', BeautifulSoup(text, features='lxml').get_text(strip=True))
+    return re.sub(SUMMARY_CLEAN, '', BeautifulSoup(text, features='lxml').get_text(strip=True)).strip()
 
 
 def get_summary(item):

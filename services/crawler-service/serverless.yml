@@ -8,6 +8,7 @@ plugins:
   - serverless-offline
   - serverless-iam-roles-per-function
   - serverless-dotenv-plugin
+  - serverless-step-functions
 
 package:
   individually: true
@@ -29,6 +30,7 @@ provider:
     SOURCE_THAIPBS: ${self:custom.sourceThaipbs}
     SOURCE_MATICHON: ${self:custom.sourceMatichon}
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
+    SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     ES_INDEX: ${self:custom.es.index}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
@@ -53,6 +55,7 @@ custom:
   sourceThaipbs: 'thaipbs'
   sourceMatichon: 'มติชน'
   sourceVoicetv: 'Voice TV'
+  sourceBeartai: 'beartai'
   config:
     CACHE_INSTANCE_SIZE: cache.t2.micro
   lambdaVPC:
@@ -74,45 +77,110 @@ custom:
 resources:
   - ${file(vpc-resource.yml)}
 
+stepFunctions:
+  stateMachines:
+    crawler:
+      events:
+        - schedule:
+            rate: ${self:custom.crawConfig.rate}
+            enabled: true
+            input:
+              source: ${self:custom.sourceSanook}
+        - schedule:
+            rate: ${self:custom.crawConfig.rate}
+            enabled: true
+            input:
+              source: ${self:custom.sourceMatichon}
+        - schedule:
+            rate: ${self:custom.crawConfig.rate}
+            enabled: true
+            input:
+              source: ${self:custom.sourceVoicetv}
+        - schedule:
+            rate: ${self:custom.crawConfig.rate}
+            enabled: true
+            input:
+              source: ${self:custom.sourceBeartai}
+      definition:
+        Comment: 'A crawler service'
+        StartAt: Crawl
+        States:
+          Crawl:
+            Type: Task
+            Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-crawler'
+            Next: Send
+          Send:
+            Type: Task
+            Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-send'
+            End: true
+
 functions:
-  crawl-sanook:
+  crawler:
     handler: handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     vpc: ${self:custom.lambdaVPC}
     timeout: ${self:custom.crawConfig.timeout}
-    events:
-      - schedule:
-          rate: ${self:custom.crawConfig.rate}
-          enabled: true
-          input:
-            source: ${self:custom.sourceSanook}
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+  send:
+    handler: send_handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    timeout: ${self:custom.crawConfig.timeout}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  crawl-voiceTV:
-    handler: handler.run
-    layers:
-      - { Ref: PythonRequirementsLambdaLayer }
-    vpc: ${self:custom.lambdaVPC}
-    timeout: ${self:custom.crawConfig.timeout}
-    events:
-      - schedule:
-          rate: ${self:custom.crawConfig.rate}
-          enabled: true
-          input:
-            source: ${self:custom.sourceVoicetv}
-    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+  # crawl-sanook:
+  #   handler: handler.run
+  #   layers:
+  #     - { Ref: PythonRequirementsLambdaLayer }
+  #   vpc: ${self:custom.lambdaVPC}
+  #   timeout: ${self:custom.crawConfig.timeout}
+  #   events:
+  #     - schedule:
+  #         rate: ${self:custom.crawConfig.rate}
+  #         enabled: false
+  #         input:
+  #           source: ${self:custom.sourceSanook}
+  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  crawl-matichon:
-    handler: handler.run
-    layers:
-      - { Ref: PythonRequirementsLambdaLayer }
-    vpc: ${self:custom.lambdaVPC}
-    timeout: ${self:custom.crawConfig.timeout}
-    events:
-      - schedule:
-          rate: ${self:custom.crawConfig.rate}
-          enabled: true
-          input:
-            source: ${self:custom.sourceMatichon}
-    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+  # crawl-voiceTV:
+  #   handler: handler.run
+  #   layers:
+  #     - { Ref: PythonRequirementsLambdaLayer }
+  #   vpc: ${self:custom.lambdaVPC}
+  #   timeout: ${self:custom.crawConfig.timeout}
+  #   events:
+  #     - schedule:
+  #         rate: ${self:custom.crawConfig.rate}
+  #         enabled: false
+  #         input:
+  #           source: ${self:custom.sourceVoicetv}
+  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+
+  # crawl-matichon:
+  #   handler: handler.run
+  #   layers:
+  #     - { Ref: PythonRequirementsLambdaLayer }
+  #   vpc: ${self:custom.lambdaVPC}
+  #   timeout: ${self:custom.crawConfig.timeout}
+  #   events:
+  #     - schedule:
+  #         rate: ${self:custom.crawConfig.rate}
+  #         enabled: false
+  #         input:
+  #           source: ${self:custom.sourceMatichon}
+  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+
+  # crawl-beartai:
+  #   handler: handler.run
+  #   layers:
+  #     - { Ref: PythonRequirementsLambdaLayer }
+  #   vpc: ${self:custom.lambdaVPC}
+  #   timeout: ${self:custom.crawConfig.timeout}
+  #   events:
+  #     - schedule:
+  #         rate: ${self:custom.crawConfig.rate}
+  #         enabled: false
+  #         input:
+  #           source: ${self:custom.sourceBeartai}
+  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}

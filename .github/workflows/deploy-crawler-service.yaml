@@ -1,0 +1,43 @@
+name: Deploy crawler service
+
+on:
+  push:
+    paths:
+      - 'services/crawler-service/*'
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+        python-version: [3.8]
+    defaults:
+      run:
+        working-directory: services/crawler-service
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+      - name: Install Serverless Framework
+        run: npm install -g serverless
+      - name: Install NPM dependencies
+        run: npm install
+      - name: Create env file
+        run: |
+          touch .env
+          echo ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY_ID }}>> .env
+          echo SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> .env
+          cat .env
+      - name: Serverless AWS authentication
+        run: sls config credentials --provider aws --key ${{ secrets.AWS_ACCESS_KEY_ID }} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Deploy Lambda functions
+        run: sls deploy -v
