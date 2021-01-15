@@ -26,7 +26,6 @@ provider:
     lambda: true
   environment:
     ELASTICSEACH_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-    REDIS_HOST: !GetAtt ElasticCacheCluster.RedisEndpoint.Address
     SOURCE_SANOOK: ${self:custom.sourceSanook}
     SOURCE_THAIPBS: ${self:custom.sourceThaipbs}
     SOURCE_MATICHON: ${self:custom.sourceMatichon}
