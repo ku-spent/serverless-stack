@@ -1,3 +1,4 @@
+import json
 import requests
 import threading
 from uuid import uuid4
@@ -5,19 +6,21 @@ from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
-from datetime import time
 
-from constant import BASE_MAP_CATEGORY, LOCAL, REDIS_HOST
+from constant import BASE_MAP_CATEGORY, LOCAL, QUEUE_URL, REDIS_HOST
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
 import redis
 import feedparser
 from dict_hash import sha256
+import boto3
 
 HOURS_24 = 24 * 60 * 60
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'}
+
+sqs = boto3.client('sqs')
 
 
 class BaseHandler(ABC, threading.Thread):
@@ -121,11 +124,16 @@ class BaseHandler(ABC, threading.Thread):
             # self.es.bulk(index=index, doc_type='_doc', body=body)
         print(f'Published successfully. {self.source} {self.url} total: {len(entries)} entries')
 
-    def publish(self, payload):
-        hash_value = self.hash_payload(payload)
+    def publish(self, payload, hash_func):
+        hash_func = hash_func if hash_func is not None else self._hash_payload
+        hash_value = hash_func(payload)
         keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
-        self.es.index(index=index, id=hash_value, body=dict_with_keys(payload, keys))
-        print('Message published successfully.', payload['url'])
+        body = {'_id': hash_value, 'payload': dict_with_keys(payload, keys)} 
+        response = sqs.send_message(
+            QueueUrl=QUEUE_URL,
+            MessageBody=json.dumps({'_id': hash_value, 'payload': body})
+        )
+        print(response['MessageId'])
 
 
 def requests_retry_session(

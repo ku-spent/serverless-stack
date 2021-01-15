@@ -32,8 +32,14 @@ provider:
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     ES_INDEX: ${self:custom.es.index}
+    QUEUE_URL: { Ref: NewSQSQueue }
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource:
+        Fn::GetAtt: [CrawlerQueue, Arn]
 
 custom:
   pythonRequirements:
@@ -47,6 +53,9 @@ custom:
 
   es:
     index: 'rss-feed-3'
+
+  sqs:
+    arn: !GetAtt CrawlerQueue.Arn
 
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
@@ -76,47 +85,7 @@ custom:
 
 resources:
   - ${file(vpc-resource.yml)}
-
-stepFunctions:
-  stateMachines:
-    crawler:
-      events:
-        - schedule:
-            name: crawler-sanook
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceSanook}
-        - schedule:
-            name: crawler-matichon
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceMatichon}
-        - schedule:
-            name: crawler-voicetv
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceVoicetv}
-        - schedule:
-            name: crawler-beartai
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceBeartai}
-      definition:
-        Comment: 'A crawler service'
-        StartAt: Crawl
-        States:
-          Crawl:
-            Type: Task
-            Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-crawler'
-            Next: Send
-          Send:
-            Type: Task
-            Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-send'
-            End: true
+  - ${file(sqs-resource.yml)}
 
 functions:
   crawler:
@@ -126,65 +95,134 @@ functions:
     vpc: ${self:custom.lambdaVPC}
     timeout: ${self:custom.crawConfig.timeout}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+    events:
+      - schedule:
+          name: crawler-sanook
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceSanook}
+      - schedule:
+          name: crawler-matichon
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceMatichon}
+      - schedule:
+          name: crawler-voicetv
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceVoicetv}
+      - schedule:
+          name: crawler-beartai
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceBeartai}
   send:
     handler: send_handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     timeout: ${self:custom.crawConfig.timeout}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+    events:
+      - sqs:
+          arn: ${self:custom.sqs.arn}
+          batchSize: 10
+          maximumBatchingWindow: 60
+# stepFunctions:
+#   stateMachines:
+#     crawler:
+#       events:
+#         - schedule:
+#             name: crawler-sanook
+#             rate: ${self:custom.crawConfig.rate}
+#             enabled: true
+#             input:
+#               source: ${self:custom.sourceSanook}
+#         - schedule:
+#             name: crawler-matichon
+#             rate: ${self:custom.crawConfig.rate}
+#             enabled: true
+#             input:
+#               source: ${self:custom.sourceMatichon}
+#         - schedule:
+#             name: crawler-voicetv
+#             rate: ${self:custom.crawConfig.rate}
+#             enabled: true
+#             input:
+#               source: ${self:custom.sourceVoicetv}
+#         - schedule:
+#             name: crawler-beartai
+#             rate: ${self:custom.crawConfig.rate}
+#             enabled: true
+#             input:
+#               source: ${self:custom.sourceBeartai}
+#       definition:
+#         Comment: 'A crawler service'
+#         StartAt: Crawl
+#         States:
+#           Crawl:
+#             Type: Task
+#             Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-crawler'
+#             Next: Send
+#           Send:
+#             Type: Task
+#             Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-send'
+#             End: true
+# crawl-sanook:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceSanook}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-sanook:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceSanook}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+# crawl-voiceTV:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceVoicetv}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-voiceTV:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceVoicetv}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+# crawl-matichon:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceMatichon}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-matichon:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceMatichon}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-  # crawl-beartai:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceBeartai}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+# crawl-beartai:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceBeartai}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}

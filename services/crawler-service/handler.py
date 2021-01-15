@@ -44,14 +44,6 @@ def run(event, context):
         for handler in handlers:
             handler.join()
 
-        if(len(handlers) > 0):
-            payloads = handlers[0].payloads
-        else:
-            payloads = []
-
-        print(len(payloads))
-        return {'payloads': payloads}
-
     except Exception as e:
         raise str(e)
     finally:

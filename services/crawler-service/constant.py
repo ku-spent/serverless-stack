@@ -84,6 +84,7 @@ ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', 'search-spent-eoyffh53pimfhjr
 ACCESS_KEY = os.getenv('ACCESS_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ES_INDEX = os.getenv('ES_INDEX', 'rss-feed-3')
+QUEUE_URL = os.getenv('QUEUE_URL', '')
 
 # TEXT_CLASSIFY_ENDPOINT = os.getenv('TEXT_CLASSIFY_ENDPOINT')
 # NEWS_TABLE_NAME = os.getenv('NEWS_TABLE_NAME')

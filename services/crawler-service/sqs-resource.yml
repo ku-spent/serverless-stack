@@ -1,0 +1,6 @@
+Resources:
+  CrawlerQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: 'CrawlerQueue'
+      FifoQueue: true

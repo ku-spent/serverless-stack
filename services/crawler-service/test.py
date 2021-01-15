@@ -15,10 +15,10 @@ def test(url):
         return newsList, newsList[0]['link']
     return None, None
 
-run({'source': SOURCE_SANOOK}, {})
+# run({'source': SOURCE_SANOOK}, {})
 run({'source': SOURCE_VOICETV}, {})
-run({'source': SOURCE_MATICHON}, {})
-run({'source': SOURCE_BEARTAI}, {})
+# run({'source': SOURCE_MATICHON}, {})
+# run({'source': SOURCE_BEARTAI}, {})
 
 # pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
 # cache = redis.Redis(connection_pool=pool)
