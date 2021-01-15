@@ -1,5 +1,5 @@
 import { Handler } from 'aws-lambda'
-import esb, { matchAllQuery, matchQuery } from 'elastic-builder'
+import esb, { boolQuery, matchAllQuery, matchQuery } from 'elastic-builder'
 import commonMiddleware from '../libs/commonMiddleware'
 import { esSearch } from '../libs/elasticsearch'
 

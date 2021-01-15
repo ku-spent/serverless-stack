@@ -1,10 +1,15 @@
 import datetime
+from handlers.handler_beartai import BeartaiHandler
 from handlers.handler_matichon import MatichonHandler
 from handlers.handler_voicetv import VoiceTVHandler
 from logger import logger
-from constant import SOURCES, SOURCE_SANOOK, SOURCE_THAIPBS, SOURCE_MATICHON, SOURCE_VOICETV
+from constant import SOURCES, SOURCE_BEARTAI, SOURCE_SANOOK, SOURCE_MATICHON, SOURCE_VOICETV
 
 from handlers.handler_sanook import SanookHandler
+
+
+def build_handlers(Handler, Source):
+    return [Handler(url=source['url'], category=source['category']) for source in Source]
 
 
 def run(event, context):
@@ -22,12 +27,12 @@ def run(event, context):
 
     if(source == SOURCE_SANOOK):
         handlers = [SanookHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_SANOOK]]
-    elif(source == SOURCE_THAIPBS):
-        pass
     elif(source == SOURCE_MATICHON):
         handlers = [MatichonHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_MATICHON]]
     elif(source == SOURCE_VOICETV):
         handlers = [VoiceTVHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_VOICETV]]
+    elif(source == SOURCE_BEARTAI):
+        handlers = build_handlers(BeartaiHandler, SOURCES[SOURCE_BEARTAI])
 
     for handler in handlers:
         handler.start()

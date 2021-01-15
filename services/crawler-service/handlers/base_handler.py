@@ -79,7 +79,7 @@ class BaseHandler(ABC, threading.Thread):
         except Exception as err:
             print(f'Other error occurred: {err}')  # Python 3.6
         else:
-            text = response.text
+            text = response.content
         finally:
             return text
 

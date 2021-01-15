@@ -1,7 +1,6 @@
 import re
 import time
 import traceback
-from uuid import uuid4
 from datetime import datetime
 
 from bs4 import BeautifulSoup
@@ -9,7 +8,7 @@ from bs4 import BeautifulSoup
 from logger import logger
 from constant import LOCAL, SOURCE_SANOOK
 from handlers.base_handler import BaseHandler
-from handlers.pre_processing import clean_summary, ensureHttps, local_datetime_to_utc
+from handlers.pre_processing import local_datetime_to_utc
 
 ADDITIONAL_CATEGORY = {
     'ภูมิภาค': LOCAL,

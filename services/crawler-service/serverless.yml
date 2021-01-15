@@ -29,6 +29,7 @@ provider:
     SOURCE_THAIPBS: ${self:custom.sourceThaipbs}
     SOURCE_MATICHON: ${self:custom.sourceMatichon}
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
+    SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     ES_INDEX: ${self:custom.es.index}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
@@ -53,6 +54,7 @@ custom:
   sourceThaipbs: 'thaipbs'
   sourceMatichon: 'มติชน'
   sourceVoicetv: 'Voice TV'
+  sourceBeartai: 'beartai'
   config:
     CACHE_INSTANCE_SIZE: cache.t2.micro
   lambdaVPC:
@@ -115,4 +117,18 @@ functions:
           enabled: true
           input:
             source: ${self:custom.sourceMatichon}
+    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+
+  crawl-beartai:
+    handler: handler.run
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    vpc: ${self:custom.lambdaVPC}
+    timeout: ${self:custom.crawConfig.timeout}
+    events:
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceBeartai}
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
