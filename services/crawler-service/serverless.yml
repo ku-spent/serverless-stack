@@ -9,6 +9,7 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-dotenv-plugin
   - serverless-step-functions
+  - serverless-dynamodb-local
 
 package:
   individually: true
@@ -39,7 +40,18 @@ provider:
       Action:
         - sqs:*
       Resource:
-        Fn::GetAtt: [CrawlerQueue, Arn]
+        Fn::GetAtt: ${self:custom.sqs.arn}
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: '*'
 
 custom:
   pythonRequirements:
@@ -56,6 +68,12 @@ custom:
 
   sqs:
     arn: !GetAtt CrawlerQueue.Arn
+
+  dynamodb:
+    start:
+      migration: true
+    stages:
+      - dev
 
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
@@ -84,8 +102,9 @@ custom:
             - '/*'
 
 resources:
-  - ${file(vpc-resource.yml)}
-  - ${file(sqs-resource.yml)}
+  - ${file(resources/vpc-resource.yml)}
+  - ${file(resources/sqs-resource.yml)}
+  - ${file(resources/dynamodb-resource.yml)}
 
 functions:
   crawler:

@@ -1,0 +1,14 @@
+Resources:
+  NewsUrl:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NewsUrl
+      AttributeDefinitions:
+        - AttributeName: url
+          AttributeType: S
+      KeySchema:
+        - AttributeName: url
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1

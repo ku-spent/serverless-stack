@@ -5,3 +5,4 @@ elasticdump.sh
 rss-feed-1
 .env*
 __pycache__
+.dynamodb

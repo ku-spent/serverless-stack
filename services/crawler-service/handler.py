@@ -26,7 +26,7 @@ def run(event, context):
     # dispatch
     try:
         source = event.get('source')
-        print(f'Start send payloads: {source}')
+        print(f'Start crawl: {source}')
 
         handlers = []
 

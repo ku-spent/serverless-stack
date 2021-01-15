@@ -24,7 +24,7 @@ def run(event, context):
         return 'Complete send payloads service'
 
     except Exception as e:
-        raise str(e)
+        print(e)
 
     finally:
         print('Complete crawler service')
