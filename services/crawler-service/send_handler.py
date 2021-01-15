@@ -3,7 +3,7 @@ from logger import logger
 from helper.elasticsearch import es, index
 
 
-def run(event, context, callback):
+def run(event, context):
     current_time = datetime.datetime.now().time()
     try:
         name = context.function_name
@@ -13,16 +13,17 @@ def run(event, context, callback):
 
     # dispatch
     try:
-        payloads = event.payloads
+        payloads = event['payloads']
         print(len(payloads))
 
         if(len(payloads) > 0):
             es.bulk(index=index, doc_type='_doc', body=payloads)
             print(f'sending {len(payloads)} items')
 
-        callback(None, 'Complete send payloads service')
+        return 'Complete send payloads service'
 
     except Exception as e:
-        callback(str(e))
+        raise str(e)
+
     finally:
-        print()
+        print('Complete crawler service')

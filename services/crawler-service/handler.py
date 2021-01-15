@@ -12,7 +12,7 @@ def build_handlers(Handler, Source):
     return [Handler(url=source['url'], category=source['category']) for source in Source]
 
 
-def run(event, context, callback):
+def run(event, context):
     current_time = datetime.datetime.now().time()
     try:
         name = context.function_name
@@ -24,7 +24,7 @@ def run(event, context, callback):
     try:
         source = event.get('source')
         print(f'Start send payloads: {source}')
-        
+
         handlers = []
 
         if(source == SOURCE_SANOOK):
@@ -46,9 +46,9 @@ def run(event, context, callback):
         else:
             payloads = []
 
-        callback(None, payloads)
+        return {'payloads': payloads}
 
     except Exception as e:
-        callback(str(e))
+        raise str(e)
     finally:
         print('Complete crawler service')
