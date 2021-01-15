@@ -36,21 +36,6 @@ provider:
     QUEUE_URL: { Ref: CrawlerQueue }
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
-    - Effect: Allow
-      Action:
-        - sqs:*
-      Resource: ${self:custom.sqs.arn}
-    - Effect: Allow
-      Action:
-        - sqs:*
-      Resource: '*'
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-      Resource: '*'
 
 custom:
   pythonRequirements:
@@ -92,7 +77,18 @@ custom:
       - !GetAtt ServerlessSecurityGroup.GroupId
     subnetIds:
       - Ref: PrivateSubnetA
-  fullAccessElasticsearch:
+  lambdaIam:
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource: ${self:custom.sqs.arn}
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: '*'
     - Effect: Allow
       Action:
         - es:*
@@ -148,46 +144,6 @@ functions:
           arn: ${self:custom.sqs.arn}
           batchSize: 10
           maximumBatchingWindow: 60
-# stepFunctions:
-#   stateMachines:
-#     crawler:
-#       events:
-#         - schedule:
-#             name: crawler-sanook
-#             rate: ${self:custom.crawConfig.rate}
-#             enabled: true
-#             input:
-#               source: ${self:custom.sourceSanook}
-#         - schedule:
-#             name: crawler-matichon
-#             rate: ${self:custom.crawConfig.rate}
-#             enabled: true
-#             input:
-#               source: ${self:custom.sourceMatichon}
-#         - schedule:
-#             name: crawler-voicetv
-#             rate: ${self:custom.crawConfig.rate}
-#             enabled: true
-#             input:
-#               source: ${self:custom.sourceVoicetv}
-#         - schedule:
-#             name: crawler-beartai
-#             rate: ${self:custom.crawConfig.rate}
-#             enabled: true
-#             input:
-#               source: ${self:custom.sourceBeartai}
-#       definition:
-#         Comment: 'A crawler service'
-#         StartAt: Crawl
-#         States:
-#           Crawl:
-#             Type: Task
-#             Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-crawler'
-#             Next: Send
-#           Send:
-#             Type: Task
-#             Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-send'
-#             End: true
 # crawl-sanook:
 #   handler: handler.run
 #   layers:
