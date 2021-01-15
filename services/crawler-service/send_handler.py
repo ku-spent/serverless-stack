@@ -1,10 +1,12 @@
 import datetime
+from json import dumps
 from logger import logger
 from helper.elasticsearch import es, index
 
 
 def run(event, context):
     current_time = datetime.datetime.now().time()
+    logger.info(f'event: {dumps(event)}')
     try:
         name = context.function_name
         logger.info("Cron function " + name + " ran at " + str(current_time))
