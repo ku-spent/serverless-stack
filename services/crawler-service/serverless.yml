@@ -97,25 +97,21 @@ functions:
     iamRoleStatements: ${self:custom.fullAccessElasticsearch}
     events:
       - schedule:
-          name: crawler-sanook
           rate: ${self:custom.crawConfig.rate}
           enabled: true
           input:
             source: ${self:custom.sourceSanook}
       - schedule:
-          name: crawler-matichon
           rate: ${self:custom.crawConfig.rate}
           enabled: true
           input:
             source: ${self:custom.sourceMatichon}
       - schedule:
-          name: crawler-voicetv
           rate: ${self:custom.crawConfig.rate}
           enabled: true
           input:
             source: ${self:custom.sourceVoicetv}
       - schedule:
-          name: crawler-beartai
           rate: ${self:custom.crawConfig.rate}
           enabled: true
           input:
