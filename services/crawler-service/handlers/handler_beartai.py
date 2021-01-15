@@ -35,7 +35,7 @@ class BeartaiHandler(BaseHandler):
             soup = BeautifulSoup(raw_html, 'html.parser')
             content_tag = soup.find(class_='content-area')
             # ไม่เอาเพราะไม่ใช่เนื้อหาข่าว
-            data['image'] = content_tag.find(class_='hero-has-splitter').find('img')['src']
+            data['image'] = content_tag.find(class_='hero').find('img')['src']
             tags = soup.find(class_='post-tags')
             if(tags):
                 data['tags'] = [tag.get_text() for tag in soup.find(class_='post-tags').find_all('a')]
@@ -60,8 +60,7 @@ class BeartaiHandler(BaseHandler):
         items = []
         raw_html = self.get_raw_html(url)
         soup = BeautifulSoup(raw_html, 'html.parser')
-        news_list = soup.find_all('article')
-        # return
+        news_list = soup.find('main', class_='main').find_all('article')
         for news in news_list:
             try:
                 title = news.find(class_='title').get_text()
