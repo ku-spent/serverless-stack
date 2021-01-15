@@ -24,14 +24,15 @@ def run(event, context, callback):
     try:
         source = event.get('source')
         print(f'Start send payloads: {source}')
+        
         handlers = []
 
         if(source == SOURCE_SANOOK):
-            handlers = [SanookHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_SANOOK]]
+            handlers = build_handlers(SanookHandler, SOURCES[SOURCE_SANOOK])
         elif(source == SOURCE_MATICHON):
-            handlers = [MatichonHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_MATICHON]]
+            handlers = build_handlers(MatichonHandler, SOURCES[SOURCE_MATICHON])
         elif(source == SOURCE_VOICETV):
-            handlers = [VoiceTVHandler(url=source['url'], category=source['category']) for source in SOURCES[SOURCE_VOICETV]]
+            handlers = build_handlers(VoiceTVHandler, SOURCES[SOURCE_VOICETV])
         elif(source == SOURCE_BEARTAI):
             handlers = build_handlers(BeartaiHandler, SOURCES[SOURCE_BEARTAI])
 
