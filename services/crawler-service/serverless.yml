@@ -42,7 +42,7 @@ custom:
     dockerizePip: non-linux
 
   crawConfig:
-    timeout: 90
+    timeout: 120
     rate: rate(5 minutes)
 
   es:
