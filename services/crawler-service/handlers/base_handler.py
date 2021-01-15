@@ -7,7 +7,7 @@ from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 from datetime import datetime
 
-from constant import BASE_MAP_CATEGORY, LOCAL, REDIS_HOST
+from constant import BASE_MAP_CATEGORY, REDIS_HOST
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
