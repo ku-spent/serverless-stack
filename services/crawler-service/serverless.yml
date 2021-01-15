@@ -72,11 +72,6 @@ custom:
   sourceBeartai: 'beartai'
   config:
     CACHE_INSTANCE_SIZE: cache.t2.micro
-  lambdaVPC:
-    securityGroupIds:
-      - !GetAtt ServerlessSecurityGroup.GroupId
-    subnetIds:
-      - Ref: PrivateSubnetA
   lambdaIam:
     - Effect: Allow
       Action:
@@ -100,7 +95,6 @@ custom:
             - '/*'
 
 resources:
-  - ${file(resources/vpc-resource.yml)}
   - ${file(resources/sqs-resource.yml)}
   - ${file(resources/dynamodb-resource.yml)}
 
@@ -109,9 +103,8 @@ functions:
     handler: handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
-    vpc: ${self:custom.lambdaVPC}
     timeout: ${self:custom.crawConfig.timeout}
-    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+    iamRoleStatements: ${self:custom.lambdaIam}
     events:
       - schedule:
           rate: ${self:custom.crawConfig.rate}
@@ -138,7 +131,7 @@ functions:
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     timeout: ${self:custom.crawConfig.timeout}
-    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+    iamRoleStatements: ${self:custom.lambdaIam}
     events:
       - sqs:
           arn: ${self:custom.sqs.arn}
