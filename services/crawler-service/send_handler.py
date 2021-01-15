@@ -15,6 +15,7 @@ def run(event, context, callback):
     try:
         payloads = event.payloads
         print(len(payloads))
+
         if(len(payloads) > 0):
             es.bulk(index=index, doc_type='_doc', body=payloads)
             print(f'sending {len(payloads)} items')
