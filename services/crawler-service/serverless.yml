@@ -45,7 +45,7 @@ custom:
 
   crawConfig:
     timeout: 120
-    rate: rate(5 minutes)
+    rate: rate(10 minutes)
 
   es:
     index: 'rss-feed-3'
