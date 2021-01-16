@@ -19,7 +19,7 @@ def run(event, context):
         records = [json.loads(record['body']) for record in event['Records']]
         print(len(records))
         for record in records:
-            es.index(index=index, id=record['_id'], body=record['payload'])
+            es.index(index=index, id=record['hash'], body=record['payload'])
 
         return 'Complete send payloads service'
 
