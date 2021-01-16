@@ -44,7 +44,7 @@ class VoiceTVHandler(BaseHandler):
                 data['tags'].append(tag.get_text())
             data['category'] = soup.find(class_='topic').get_text()
             pubDate = soup.find(class_='date last').get_text().split('Last update')[1][:-2].strip()
-            data['pubDate'] = datetime.strptime(pubDate, '%b %d, %Y %H:%M').isoformat() + '+00:00'
+            data['pubDate'] = datetime.strptime(pubDate, '%b %d, %Y %H:%M').isoformat()
             return data
         except Exception:
             traceback.print_exc()
@@ -98,15 +98,15 @@ class VoiceTVHandler(BaseHandler):
                 else:
                     self.set_cache_link(link)
 
-                time.sleep(1)
+                time.sleep(0.2)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue
                 data = self.normalize(item, data)
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
-                entries.append(data)
-            self.bulk_publish(entries, self.hash_payload)
+                # entries.append(data)
+                self.publish(data, self.hash_payload)
 
         except Exception:
             traceback.print_exc()

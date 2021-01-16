@@ -1,4 +1,6 @@
 import datetime
+from json import dumps
+
 from handlers.handler_beartai import BeartaiHandler
 from handlers.handler_matichon import MatichonHandler
 from handlers.handler_voicetv import VoiceTVHandler
@@ -14,6 +16,7 @@ def build_handlers(Handler, Source):
 
 def run(event, context):
     current_time = datetime.datetime.now().time()
+    logger.info(f'event: {dumps(event)}')
     try:
         name = context.function_name
         logger.info("Cron function " + name + " ran at " + str(current_time))
@@ -23,7 +26,7 @@ def run(event, context):
     # dispatch
     try:
         source = event.get('source')
-        print(f'Start send payloads: {source}')
+        print(f'Start crawl: {source}')
 
         handlers = []
 
@@ -40,13 +43,6 @@ def run(event, context):
             handler.start()
         for handler in handlers:
             handler.join()
-
-        if(len(handlers) > 0):
-            payloads = handlers[0].payloads
-        else:
-            payloads = []
-
-        return {'payloads': payloads}
 
     except Exception as e:
         raise str(e)

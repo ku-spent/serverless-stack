@@ -1,10 +1,13 @@
 import datetime
+from json import dumps, loads
+import json
 from logger import logger
 from helper.elasticsearch import es, index
 
 
 def run(event, context):
     current_time = datetime.datetime.now().time()
+    logger.info(f'event: {dumps(event)}')
     try:
         name = context.function_name
         logger.info("Cron function " + name + " ran at " + str(current_time))
@@ -13,17 +16,15 @@ def run(event, context):
 
     # dispatch
     try:
-        payloads = event['payloads']
-        print(len(payloads))
-
-        if(len(payloads) > 0):
-            es.bulk(index=index, doc_type='_doc', body=payloads)
-            print(f'sending {len(payloads)} items')
+        records = [json.loads(record['body']) for record in event['Records']]
+        print(len(records))
+        for record in records:
+            es.index(index=index, id=record['_id'], body=record['payload'])
 
         return 'Complete send payloads service'
 
     except Exception as e:
-        raise str(e)
+        print(e)
 
     finally:
         print('Complete crawler service')

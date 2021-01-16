@@ -27,7 +27,7 @@ def local_datetime_to_utc(dt):
     local_time = pytz.timezone('Asia/Bangkok')
     local_dt = local_time.localize(dt, is_dst=None)
     utc_dt = local_dt.astimezone(pytz.utc)
-    return utc_dt
+    return utc_dt.isoformat()
 
 
 def dict_with_keys(d, keys):

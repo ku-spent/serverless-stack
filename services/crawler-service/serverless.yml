@@ -9,6 +9,7 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-dotenv-plugin
   - serverless-step-functions
+  - serverless-dynamodb-local
 
 package:
   individually: true
@@ -25,13 +26,13 @@ provider:
     lambda: true
   environment:
     ELASTICSEACH_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-    REDIS_HOST: !GetAtt ElasticCacheCluster.RedisEndpoint.Address
     SOURCE_SANOOK: ${self:custom.sourceSanook}
     SOURCE_THAIPBS: ${self:custom.sourceThaipbs}
     SOURCE_MATICHON: ${self:custom.sourceMatichon}
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     ES_INDEX: ${self:custom.es.index}
+    QUEUE_URL: { Ref: CrawlerQueue }
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
 
@@ -42,11 +43,23 @@ custom:
     dockerizePip: non-linux
 
   crawConfig:
-    timeout: 90
+    timeout: 120
     rate: rate(5 minutes)
 
   es:
     index: 'rss-feed-3'
+
+  sqs:
+    arn: !GetAtt CrawlerQueue.Arn
+
+  dynamodb:
+    start:
+      migration:
+        dir: 'dynamodbMigrations'
+        table_prefix: ''
+        table_suffix: ''
+    stages:
+      - dev
 
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
@@ -58,12 +71,18 @@ custom:
   sourceBeartai: 'beartai'
   config:
     CACHE_INSTANCE_SIZE: cache.t2.micro
-  lambdaVPC:
-    securityGroupIds:
-      - !GetAtt ServerlessSecurityGroup.GroupId
-    subnetIds:
-      - Ref: PrivateSubnetA
-  fullAccessElasticsearch:
+  lambdaIam:
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource: ${self:custom.sqs.arn}
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: '*'
     - Effect: Allow
       Action:
         - es:*
@@ -75,112 +94,100 @@ custom:
             - '/*'
 
 resources:
-  - ${file(vpc-resource.yml)}
-
-stepFunctions:
-  stateMachines:
-    crawler:
-      events:
-        - schedule:
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceSanook}
-        - schedule:
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceMatichon}
-        - schedule:
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceVoicetv}
-        - schedule:
-            rate: ${self:custom.crawConfig.rate}
-            enabled: true
-            input:
-              source: ${self:custom.sourceBeartai}
-      definition:
-        Comment: 'A crawler service'
-        StartAt: Crawl
-        States:
-          Crawl:
-            Type: Task
-            Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-crawler'
-            Next: Send
-          Send:
-            Type: Task
-            Resource: 'arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-send'
-            End: true
+  - ${file(resources/sqs-resource.yml)}
+  - ${file(resources/dynamodb-resource.yml)}
 
 functions:
   crawler:
     handler: handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
-    vpc: ${self:custom.lambdaVPC}
     timeout: ${self:custom.crawConfig.timeout}
-    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+    iamRoleStatements: ${self:custom.lambdaIam}
+    events:
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceSanook}
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceMatichon}
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceVoicetv}
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceBeartai}
   send:
     handler: send_handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     timeout: ${self:custom.crawConfig.timeout}
-    iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+    iamRoleStatements: ${self:custom.lambdaIam}
+    events:
+      - sqs:
+          arn: ${self:custom.sqs.arn}
+          batchSize: 10
+          maximumBatchingWindow: 60
+# crawl-sanook:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceSanook}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-sanook:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceSanook}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+# crawl-voiceTV:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceVoicetv}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-voiceTV:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceVoicetv}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+# crawl-matichon:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceMatichon}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
 
-  # crawl-matichon:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceMatichon}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-  # crawl-beartai:
-  #   handler: handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   vpc: ${self:custom.lambdaVPC}
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   events:
-  #     - schedule:
-  #         rate: ${self:custom.crawConfig.rate}
-  #         enabled: false
-  #         input:
-  #           source: ${self:custom.sourceBeartai}
-  #   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
+# crawl-beartai:
+#   handler: handler.run
+#   layers:
+#     - { Ref: PythonRequirementsLambdaLayer }
+#   vpc: ${self:custom.lambdaVPC}
+#   timeout: ${self:custom.crawConfig.timeout}
+#   events:
+#     - schedule:
+#         rate: ${self:custom.crawConfig.rate}
+#         enabled: false
+#         input:
+#           source: ${self:custom.sourceBeartai}
+#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}

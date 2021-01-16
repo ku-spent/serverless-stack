@@ -100,15 +100,15 @@ class SanookHandler(BaseHandler):
                 else:
                     self.set_cache_link(link)
 
-                time.sleep(1)
+                time.sleep(0.2)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue
                 data = self.normalize(item, data)
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
-                entries.append(data)
-            self.bulk_publish(entries, self.hash_payload)
+                # entries.append(data)
+                self.publish(data, self.hash_payload)
 
         except Exception:
             traceback.print_exc()

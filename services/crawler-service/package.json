@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "serverless-dynamodb-local": "^0.2.39",
     "serverless-iam-roles-per-function": "^3.0.1",
     "serverless-offline": "^6.8.0",
     "serverless-pseudo-parameters": "^2.5.0",
