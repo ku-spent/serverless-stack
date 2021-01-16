@@ -98,7 +98,6 @@ class MatichonHandler(BaseHandler):
         try:
             print(f'Start crawl {self.category} from {self.url}')
             items = self.parse_url(self.url)
-            entries = []
             for item in items:
                 if(item is None):
                     continue
@@ -119,7 +118,6 @@ class MatichonHandler(BaseHandler):
                 data = self.normalize(item, data)
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
-                # entries.append(data)
                 self.publish(data, self.hash_payload)
 
         except Exception:
