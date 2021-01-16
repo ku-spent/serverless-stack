@@ -17,8 +17,8 @@ def test(url):
     return None, None
 
 # run({'source': SOURCE_SANOOK}, {})
-run({'source': SOURCE_VOICETV}, {})
-# run({'source': SOURCE_MATICHON}, {})
+# run({'source': SOURCE_VOICETV}, {})
+run({'source': SOURCE_MATICHON}, {})
 # run({'source': SOURCE_BEARTAI}, {})
 
 # pool = redis.ConnectionPool(host='localhost', port=6379, db=0)

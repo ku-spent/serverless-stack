@@ -39,14 +39,11 @@ class MatichonHandler(BaseHandler):
             data['image'] = image_tag.find('a')['href']
             if(image_tag):
                 image_tag.extract()
-            raw_html_content = soup.new_tag('div')
-            for p in content.find_all('p'):
-                # ถ้าเจอคำว่า 'อ่านข่าวที่เกี่ยวข้อง' หลังจากนี้ก็จะไม่เอาแล้ว
-                if(p.get_text().strip() == 'อ่านข่าวที่เกี่ยวข้อง'):
-                    break
-                else:
-                    raw_html_content.append(p)
-            data['raw_html_content'] = str(raw_html_content)
+            for tag in content.find_all(recursive=False):
+                # ไม่เอา tag ที่มีคำว่า 'อ่านข่าวที่เกี่ยวข้อง'
+                if('อ่านข่าวที่เกี่ยวข้อง' in tag.get_text()):
+                    tag.extract()
+            data['raw_html_content'] = str(content)
             data['tags'] = []
             tags_elem = soup.find(class_='td-post-source-tags')
             if(tags_elem):
