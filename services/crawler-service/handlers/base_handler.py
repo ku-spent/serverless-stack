@@ -143,10 +143,10 @@ class BaseHandler(ABC, threading.Thread):
         hash_func = hash_func if hash_func is not None else self._hash_payload
         hash_value = hash_func(payload)
         keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
-        body = {'_id': hash_value, 'payload': dict_with_keys(payload, keys)} 
+        body = {'hash': hash_value, 'payload': dict_with_keys(payload, keys)} 
         response = sqs.send_message(
             QueueUrl=QUEUE_URL,
-            MessageBody=json.dumps({'_id': hash_value, 'payload': body})
+            MessageBody=json.dumps(body)
         )
         print(response['MessageId'])
 

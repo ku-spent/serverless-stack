@@ -10,6 +10,7 @@ plugins:
   - serverless-dotenv-plugin
   - serverless-step-functions
   - serverless-dynamodb-local
+  - serverless-dynamodb-autoscaling
 
 package:
   individually: true
@@ -44,13 +45,24 @@ custom:
 
   crawConfig:
     timeout: 120
-    rate: rate(5 minutes)
+    rate: rate(10 minutes)
 
   es:
     index: 'rss-feed-3'
 
   sqs:
     arn: !GetAtt CrawlerQueue.Arn
+
+  capacities:
+    - table: NewsUrl # DynamoDB Resource
+      read:
+        minimum: 2 # Minimum read capacity
+        maximum: 10 # Maximum read capacity
+        usage: 0.75 # Targeted usage percentage
+      write:
+        minimum: 2 # Minimum write capacity
+        maximum: 10 # Maximum write capacity
+        usage: 0.5 # Targeted usage percentage
 
   dynamodb:
     start:
@@ -69,8 +81,8 @@ custom:
   sourceMatichon: 'มติชน'
   sourceVoicetv: 'Voice TV'
   sourceBeartai: 'beartai'
-  config:
-    CACHE_INSTANCE_SIZE: cache.t2.micro
+  # config:
+  #   CACHE_INSTANCE_SIZE: cache.t2.micro
   lambdaIam:
     - Effect: Allow
       Action:
@@ -136,58 +148,3 @@ functions:
           arn: ${self:custom.sqs.arn}
           batchSize: 10
           maximumBatchingWindow: 60
-# crawl-sanook:
-#   handler: handler.run
-#   layers:
-#     - { Ref: PythonRequirementsLambdaLayer }
-#   vpc: ${self:custom.lambdaVPC}
-#   timeout: ${self:custom.crawConfig.timeout}
-#   events:
-#     - schedule:
-#         rate: ${self:custom.crawConfig.rate}
-#         enabled: false
-#         input:
-#           source: ${self:custom.sourceSanook}
-#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-# crawl-voiceTV:
-#   handler: handler.run
-#   layers:
-#     - { Ref: PythonRequirementsLambdaLayer }
-#   vpc: ${self:custom.lambdaVPC}
-#   timeout: ${self:custom.crawConfig.timeout}
-#   events:
-#     - schedule:
-#         rate: ${self:custom.crawConfig.rate}
-#         enabled: false
-#         input:
-#           source: ${self:custom.sourceVoicetv}
-#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-# crawl-matichon:
-#   handler: handler.run
-#   layers:
-#     - { Ref: PythonRequirementsLambdaLayer }
-#   vpc: ${self:custom.lambdaVPC}
-#   timeout: ${self:custom.crawConfig.timeout}
-#   events:
-#     - schedule:
-#         rate: ${self:custom.crawConfig.rate}
-#         enabled: false
-#         input:
-#           source: ${self:custom.sourceMatichon}
-#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}
-
-# crawl-beartai:
-#   handler: handler.run
-#   layers:
-#     - { Ref: PythonRequirementsLambdaLayer }
-#   vpc: ${self:custom.lambdaVPC}
-#   timeout: ${self:custom.crawConfig.timeout}
-#   events:
-#     - schedule:
-#         rate: ${self:custom.crawConfig.rate}
-#         enabled: false
-#         input:
-#           source: ${self:custom.sourceBeartai}
-#   iamRoleStatements: ${self:custom.fullAccessElasticsearch}

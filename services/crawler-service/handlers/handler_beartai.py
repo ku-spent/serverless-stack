@@ -91,7 +91,6 @@ class BeartaiHandler(BaseHandler):
             print(f'Start crawl {self.category} from {self.url}')
             items = self.parse_url(self.url)
             # return
-            entries = []
             for item in items:
                 if(item is None):
                     continue
@@ -112,7 +111,6 @@ class BeartaiHandler(BaseHandler):
                 data = self.normalize(item, data)
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
-                # entries.append(data)
                 self.publish(data, self.hash_payload)
 
         except Exception:
