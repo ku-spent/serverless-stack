@@ -30,6 +30,15 @@ provider:
     ES_INDEX_RSS: rss-feed-3
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action:
+        - es:*
+      Resource:
+        - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+        - !Join
+          - ''
+          - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+            - '/*'
 
 resources:
   # API Gateway Errors
@@ -62,6 +71,15 @@ functions:
           - cognito-idp:*
         Resource:
           - ${self:custom.userPoolArn}
+
+  relatedNews:
+    handler: src/handlers/related.handler
+    events:
+      - http:
+          method: GET
+          path: /news/related
+          authorizer: ${self:custom.authorizer}
+
   news:
     handler: src/handlers/news.handler
     events:
@@ -69,16 +87,16 @@ functions:
           method: GET
           path: /news
           authorizer: ${self:custom.authorizer}
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - es:*
-        Resource:
-          - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-          - !Join
-            - ''
-            - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-              - '/*'
+    # iamRoleStatements:
+    #   - Effect: Allow
+    #     Action:
+    #       - es:*
+    #     Resource:
+    #       - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+    #       - !Join
+    #         - ''
+    #         - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+    #           - '/*'
 
   search:
     handler: src/handlers/search.handler
@@ -87,13 +105,13 @@ functions:
           method: GET
           path: /search
           authorizer: ${self:custom.authorizer}
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - es:*
-        Resource:
-          - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-          - !Join
-            - ''
-            - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-              - '/*'
+    # iamRoleStatements:
+    #   - Effect: Allow
+    #     Action:
+    #       - es:*
+    #     Resource:
+    #       - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+    #       - !Join
+    #         - ''
+    #         - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+    #           - '/*'

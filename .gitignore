@@ -1,8 +1,10 @@
 node_modules
 .serverless
 .vscode
-elasticdump.sh
+elasticdump*
 rss-feed-1
 .env*
 __pycache__
 .dynamodb
+rss-feed-*
+.build
