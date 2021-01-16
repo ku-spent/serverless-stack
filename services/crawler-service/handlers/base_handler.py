@@ -144,11 +144,11 @@ class BaseHandler(ABC, threading.Thread):
         hash_value = hash_func(payload)
         keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
         body = {'_id': hash_value, 'payload': dict_with_keys(payload, keys)} 
-        # response = sqs.send_message(
-        #     QueueUrl=QUEUE_URL,
-        #     MessageBody=json.dumps({'_id': hash_value, 'payload': body})
-        # )
-        # print(response['MessageId'])
+        response = sqs.send_message(
+            QueueUrl=QUEUE_URL,
+            MessageBody=json.dumps({'_id': hash_value, 'payload': body})
+        )
+        print(response['MessageId'])
 
 
 def requests_retry_session(
