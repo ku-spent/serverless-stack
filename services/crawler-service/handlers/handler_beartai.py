@@ -5,7 +5,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 from logger import logger
-from constant import SOURCE_BEARTAI
+from constant import CRAWL_DELAY, SOURCE_BEARTAI
 from handlers.base_handler import BaseHandler, deleteSoupElement
 from handlers.pre_processing import local_datetime_to_utc
 
@@ -97,7 +97,7 @@ class BeartaiHandler(BaseHandler):
                 if(cache is not None):
                     continue
 
-                time.sleep(0.2)
+                time.sleep(CRAWL_DELAY)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue

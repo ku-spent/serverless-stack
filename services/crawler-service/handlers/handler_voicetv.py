@@ -5,7 +5,7 @@ from datetime import datetime
 import feedparser
 from bs4 import BeautifulSoup
 
-from constant import SOURCE_VOICETV
+from constant import CRAWL_DELAY, SOURCE_VOICETV
 from logger import logger
 from handlers.base_handler import BaseHandler, deleteSoupElement
 
@@ -92,7 +92,7 @@ class VoiceTVHandler(BaseHandler):
                 if(cache is not None):
                     continue
 
-                time.sleep(0.2)
+                time.sleep(CRAWL_DELAY)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue

@@ -10,6 +10,8 @@ SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'Voice TV')
 
 SOURCE_BEARTAI = os.getenv('SOURCE_BEARTAI', 'beartai')
 
+CRAWL_DELAY = 1
+
 POLITICS = 'การเมือง'
 ECONOMIC = 'เศรษฐกิจ'
 INTERNATIONAL = 'ต่างประเทศ'

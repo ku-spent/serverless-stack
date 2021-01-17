@@ -6,7 +6,7 @@ from dict_hash.dict_hash import sha256
 import feedparser
 from bs4 import BeautifulSoup
 
-from constant import SOURCE_MATICHON
+from constant import CRAWL_DELAY, SOURCE_MATICHON
 from logger import logger
 from handlers.base_handler import BaseHandler, deleteSoupElement
 
@@ -109,11 +109,8 @@ class MatichonHandler(BaseHandler):
                 cache = self.get_cache_link(link)
                 if(cache is not None):
                     continue
-                # not visited
-                else:
-                    self.set_cache_link(link)
 
-                time.sleep(0.2)
+                time.sleep(CRAWL_DELAY)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue

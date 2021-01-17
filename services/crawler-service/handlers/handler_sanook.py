@@ -6,7 +6,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 from logger import logger
-from constant import LOCAL, SOURCE_SANOOK
+from constant import CRAWL_DELAY, LOCAL, SOURCE_SANOOK
 from handlers.base_handler import BaseHandler
 from handlers.pre_processing import local_datetime_to_utc
 
@@ -96,7 +96,7 @@ class SanookHandler(BaseHandler):
                 if(cache is not None):
                     continue
 
-                time.sleep(0.2)
+                time.sleep(CRAWL_DELAY)
                 data = self.parse_news_link(link)
                 if(data is None):
                     continue
