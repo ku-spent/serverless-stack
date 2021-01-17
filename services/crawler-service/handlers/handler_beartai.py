@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from logger import logger
 from constant import SOURCE_BEARTAI
-from handlers.base_handler import BaseHandler
+from handlers.base_handler import BaseHandler, deleteSoupElement
 from handlers.pre_processing import local_datetime_to_utc
 
 ADDITIONAL_CATEGORY = {
@@ -43,12 +43,8 @@ class BeartaiHandler(BaseHandler):
                 data['tags'] = []
             data['pubDate'] = local_datetime_to_utc(datetime.strptime(soup.find('time')['datetime'], '%Y-%m-%dT%H:%M:%S+07:00'))
             content = content_tag.find(class_='entry-content')
-            unwanted_tag = content.find('noscript')
-            if(unwanted_tag):
-                unwanted_tag.extract()
-            unwanted_related = content.find(class_='yarpp-related')
-            if(unwanted_related):
-                unwanted_related.extract()
+            deleteSoupElement(content.find('noscript'))
+            deleteSoupElement(content.find(class_='yarpp-related'))
             data['raw_html_content'] = str(content)
             return data
         except Exception:
@@ -100,9 +96,6 @@ class BeartaiHandler(BaseHandler):
                 cache = self.get_cache_link(link)
                 if(cache is not None):
                     continue
-                # not visited
-                else:
-                    self.set_cache_link(link)
 
                 time.sleep(0.2)
                 data = self.parse_news_link(link)
@@ -112,6 +105,9 @@ class BeartaiHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 self.publish(data, self.hash_payload)
+
+                if(cache is None):
+                    self.set_cache_link(link)
 
         except Exception:
             traceback.print_exc()

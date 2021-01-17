@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 from constant import SOURCE_MATICHON
 from logger import logger
-from handlers.base_handler import BaseHandler
+from handlers.base_handler import BaseHandler, deleteSoupElement
 
 ADDITIONAL_CATEGORY = {
 }
@@ -43,6 +43,11 @@ class MatichonHandler(BaseHandler):
                 # ไม่เอา tag ที่มีคำว่า 'อ่านข่าวที่เกี่ยวข้อง'
                 if('อ่านข่าวที่เกี่ยวข้อง' in tag.get_text()):
                     tag.extract()
+
+            deleteSoupElement(content.find('script'))
+            deleteSoupElement(content.find('h3'))
+            deleteSoupElement(content.find('table'))
+            deleteSoupElement(content.find(class_='td-a-rec'))
             data['raw_html_content'] = str(content)
             data['tags'] = []
             tags_elem = soup.find(class_='td-post-source-tags')
@@ -116,6 +121,9 @@ class MatichonHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 self.publish(data, self.hash_payload)
+
+                if(cache is None):
+                    self.set_cache_link(link)
 
         except Exception:
             traceback.print_exc()

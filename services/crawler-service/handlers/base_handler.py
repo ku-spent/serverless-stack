@@ -7,11 +7,10 @@ from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 
-from constant import BASE_MAP_CATEGORY, LOCAL, QUEUE_URL, REDIS_HOST
+from constant import BASE_MAP_CATEGORY, LOCAL, QUEUE_URL
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
-import redis
 import feedparser
 from dict_hash import sha256
 import boto3
@@ -21,6 +20,11 @@ HOURS_24 = 24 * 60 * 60
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'}
 
 sqs = boto3.client('sqs')
+
+
+def deleteSoupElement(element):
+    if(element):
+        element.extract()
 
 
 class BaseHandler(ABC, threading.Thread):
@@ -149,6 +153,8 @@ class BaseHandler(ABC, threading.Thread):
             MessageBody=json.dumps(body)
         )
         print(response['MessageId'])
+        return response['MessageId']
+        # es.index(index=index, id=body['hash'], body=body['payload'])
 
 
 def requests_retry_session(

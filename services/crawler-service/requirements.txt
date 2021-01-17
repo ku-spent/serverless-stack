@@ -6,4 +6,3 @@ boto3==1.16.50
 requests-aws4auth==1.0.1
 elasticsearch==7.10.1
 lxml==4.6.2
-redis==3.5.3

@@ -95,9 +95,6 @@ class SanookHandler(BaseHandler):
                 cache = self.get_cache_link(link)
                 if(cache is not None):
                     continue
-                # not visited
-                else:
-                    self.set_cache_link(link)
 
                 time.sleep(0.2)
                 data = self.parse_news_link(link)
@@ -107,6 +104,9 @@ class SanookHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 self.publish(data, self.hash_payload)
+
+                if(cache is None):
+                    self.set_cache_link(link)
 
         except Exception:
             traceback.print_exc()

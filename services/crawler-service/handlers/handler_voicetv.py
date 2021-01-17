@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 from constant import SOURCE_VOICETV
 from logger import logger
-from handlers.base_handler import BaseHandler
+from handlers.base_handler import BaseHandler, deleteSoupElement
 
 ADDITIONAL_CATEGORY = {
 }
@@ -38,9 +38,7 @@ class VoiceTVHandler(BaseHandler):
             data['tags'] = []
             for tag in soup.find_all(class_='details'):
                 tag = tag.find('a')
-                unwated_tag = tag.find('span')
-                if(unwated_tag):
-                    unwated_tag.extract()
+                deleteSoupElement(tag.find('span'))
                 data['tags'].append(tag.get_text())
             data['category'] = soup.find(class_='topic').get_text()
             pubDate = soup.find(class_='date last').get_text().split('Last update')[1][:-2].strip()
@@ -93,9 +91,6 @@ class VoiceTVHandler(BaseHandler):
                 cache = self.get_cache_link(link)
                 if(cache is not None):
                     continue
-                # not visited
-                else:
-                    self.set_cache_link(link)
 
                 time.sleep(0.2)
                 data = self.parse_news_link(link)
@@ -105,6 +100,9 @@ class VoiceTVHandler(BaseHandler):
                 data = self.pre_process(data)
                 print(f'Data {data["source"]} {data["category"]} {data["url"]}')
                 self.publish(data, self.hash_payload)
+
+                if(cache is None):
+                    self.set_cache_link(link)
 
         except Exception:
             traceback.print_exc()
