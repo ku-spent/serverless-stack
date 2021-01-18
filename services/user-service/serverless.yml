@@ -9,7 +9,8 @@ plugins:
   - serverless-offline
   - serverless-iam-roles-per-function
   # - serverless-dotenv-plugin
-  # - serverless-layers
+  - serverless-layers
+  - serverless-deployment-bucket
 
 package:
   individually: true
@@ -22,10 +23,11 @@ custom:
     name: ${file(../../serverless.common.yml):custom.dynamodb.userTable.name}
     arn: ${file(../../serverless.common.yml):custom.dynamodb.userTable.arn}
 
-  # serverless-layers:
-  #   functions: # optional
-  #     - hello
-  #   dependenciesPath: ./package.json
+  serverless-layers:
+    functions: # optional
+      - get
+      - list
+    dependenciesPath: ./package.json
 
 provider:
   name: aws
@@ -41,6 +43,9 @@ provider:
     restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
   environment:
     USER_TABLE_NAME: ${self:custom.userTable.name}
+  deploymentBucket:
+    name: ${self:custom.spentApp}-service-user
+    serverSideEncryption: AES256
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
@@ -62,6 +67,10 @@ functions:
           method: GET
           path: users/{id}
           authorizer: aws_iam
+          request:
+            parameters:
+              paths:
+                id: true
 
   list:
     handler: src/handlers/list.handler
@@ -70,10 +79,3 @@ functions:
           method: GET
           path: users
           authorizer: aws_iam
-# resources:
-# - Outputs:
-#   UserServiceArn:
-#     Value:
-#       Ref: UserService
-#     Export:
-#       Name: ${self:custom.stage}-ExtUserServiceArn
