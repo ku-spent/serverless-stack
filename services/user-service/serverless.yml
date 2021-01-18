@@ -8,12 +8,24 @@ plugins:
   - serverless-plugin-typescript
   - serverless-offline
   - serverless-iam-roles-per-function
-  - serverless-dotenv-plugin
+  # - serverless-dotenv-plugin
+  # - serverless-layers
 
 package:
   individually: true
 
-custom: ${file(../../serverless.common.yml):custom}
+custom:
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+  userTable:
+    name: ${file(../../serverless.common.yml):custom.dynamodb.userTable.name}
+    arn: ${file(../../serverless.common.yml):custom.dynamodb.userTable.arn}
+
+  # serverless-layers:
+  #   functions: # optional
+  #     - hello
+  #   dependenciesPath: ./package.json
 
 provider:
   name: aws
@@ -24,18 +36,44 @@ provider:
   tracing:
     apiGateway: true
     lambda: true
-
-resources:
-  # API Gateway Errors
-  - ${file(../../api-gateway-errors.yml)}
-  # Cognito Identity Pool Policy
-  - ${file(../../cognito-policy.yml)}
+  apiGateway:
+    restApiId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiId
+    restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+  environment:
+    USER_TABLE_NAME: ${self:custom.userTable.name}
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource: ${self:custom.userTable.arn}
 
 functions:
-  hello:
-    handler: src/handlers/hello.handler
+  get:
+    handler: src/handlers/get.handler
     events:
       - http:
           method: GET
-          path: feed/hello
-          authorizer: ${self:custom.authorizer}
+          path: users/{id}
+          authorizer: aws_iam
+
+  list:
+    handler: src/handlers/list.handler
+    events:
+      - http:
+          method: GET
+          path: users
+          authorizer: aws_iam
+# resources:
+# - Outputs:
+#   UserServiceArn:
+#     Value:
+#       Ref: UserService
+#     Export:
+#       Name: ${self:custom.stage}-ExtUserServiceArn

@@ -13,6 +13,11 @@ plugins:
 package:
   individually: true
 
+# custom:
+#   stage: ${file(../../serverless.common.yml):custom.stage}
+#   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+#   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+
 custom: ${file(../../serverless.common.yml):custom}
 
 provider:
@@ -24,12 +29,11 @@ provider:
   tracing:
     apiGateway: true
     lambda: true
-
-resources:
-  # API Gateway Errors
-  - ${file(../../api-gateway-errors.yml)}
-  # Cognito Identity Pool Policy
-  - ${file(../../cognito-policy.yml)}
+  apiGateway:
+    restApiId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiId
+    restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
 
 functions:
   hello:

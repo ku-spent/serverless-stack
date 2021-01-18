@@ -7,6 +7,11 @@ custom:
     dev: dev
   spentApp: spent-resources-${self:custom.spentAppMapping.${self:custom.stage}, self:custom.spentAppMapping.dev}
 
+  dynamodb:
+    userTable:
+      name: User-rqchhvrcpvhcro3m3jspr63gmi-dev
+      arn: arn:aws:dynamodb:ap-southeast-1:268400237357:table/User-rqchhvrcpvhcro3m3jspr63gmi-dev
+
   userPoolId: ap-southeast-1_5BfiF60iL
   userPoolArn: arn:aws:cognito-idp:ap-southeast-1:268400237357:userpool/ap-southeast-1_5BfiF60iL
   dynamodbUserTableName: User-medbyyi23jdsjiee4goo376ofq-dev
