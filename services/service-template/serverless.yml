@@ -1,0 +1,41 @@
+service: spent-service-template
+
+frameworkVersion: '2'
+
+plugins:
+  # serverless reserve $ then use pseudo to interpolate # -> $
+  - serverless-pseudo-parameters
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-iam-roles-per-function
+  - serverless-dotenv-plugin
+
+package:
+  individually: true
+
+custom: ${file(../../serverless.common.yml):custom}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+
+resources:
+  # API Gateway Errors
+  - ${file(../../api-gateway-errors.yml)}
+  # Cognito Identity Pool Policy
+  - ${file(../../cognito-policy.yml)}
+
+functions:
+  hello:
+    handler: src/handlers/hello.handler
+    events:
+      - http:
+          method: GET
+          path: feed/hello
+          authorizer: ${self:custom.authorizer}
