@@ -44,10 +44,10 @@ class MatichonHandler(BaseHandler):
                 if('อ่านข่าวที่เกี่ยวข้อง' in tag.get_text()):
                     tag.extract()
 
-            deleteSoupElement(content.find('script'))
             deleteSoupElement(content.find('h3'))
+            deleteSoupElement(content.find('script'))
             deleteSoupElement(content.find('table'))
-            deleteSoupElement(content.find(class_='td-a-rec'))
+            deleteSoupElement(content.find('div', class_='td-a-rec'))
             data['raw_html_content'] = str(content)
             data['tags'] = []
             tags_elem = soup.find(class_='td-post-source-tags')
@@ -106,6 +106,7 @@ class MatichonHandler(BaseHandler):
                 link = item['link']
 
                 # visited
+                # cache = None
                 cache = self.get_cache_link(link)
                 if(cache is not None):
                     continue
