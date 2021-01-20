@@ -70,7 +70,7 @@ class MatichonHandler(BaseHandler):
             try:
                 title = news['title']
                 link = news['link']
-                pubDate = time.strftime('%Y-%m-%dT%H:%M:%SZ', news['published_parsed'])
+                pubDate = time.strftime('%Y-%m-%dT%H:%M:%S+00:00', news['published_parsed'])
                 items.append({'title': title, 'summary': title, 'link': link, 'pubDate': pubDate})
             except Exception:
                 traceback.print_exc()
