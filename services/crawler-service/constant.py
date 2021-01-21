@@ -115,6 +115,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ES_INDEX = os.getenv('ES_INDEX', 'rss-feed-3')
 QUEUE_URL = os.getenv('QUEUE_URL', '')
 BYPASS_CACHE = bool(os.getenv('BYPASS_CACHE', 'False'))
+ES_PUBLISH = bool(os.getenv('ES_PUBLISH', 'False'))
 
 # TEXT_CLASSIFY_ENDPOINT = os.getenv('TEXT_CLASSIFY_ENDPOINT')
 # NEWS_TABLE_NAME = os.getenv('NEWS_TABLE_NAME')

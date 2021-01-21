@@ -1,3 +1,4 @@
+import json
 import time
 import traceback
 
@@ -34,10 +35,19 @@ class HackernoonHandler(BaseHandler):
             soup = BeautifulSoup(raw_html, 'html.parser')
             content_tag = soup.select_one('div[class*="Container-"]')
             data['image'] = content_tag.find(class_='fullscreen').find('img')['src']
-            real_content = soup.new_tag('div')
-            for p in content_tag.find_all('p', class_="paragraph"):
-                real_content.append(p)
-            data['raw_html_content'] = str(real_content)
+            deleteSoupElement(content_tag.find('h1'))
+            deleteSoupElement(content_tag.select('div[class*="Reactions"]'))
+            deleteSoupElement(content_tag.select_one('div[class*="StoryMeta"]'))
+            deleteSoupElement(content_tag.find('div', class_='image-container'))
+            deleteSoupElement(content_tag.select_one('div[class*="Profile"]'))
+            deleteSoupElement(content_tag.find(class_='bottom-reactions'))
+            deleteSoupElement(content_tag.find('footer'))
+            deleteSoupElement(content_tag.find(class_='related-stories'))
+            deleteSoupElement(content_tag.find('section'))
+            deleteSoupElement(content_tag.select('div[class*="CallToAction"]'))
+            data['raw_html_content'] = str(content_tag)
+            with open('test.html', 'w') as f:
+                f.write(data['raw_html_content'])
             return data
         except Exception:
             traceback.print_exc()

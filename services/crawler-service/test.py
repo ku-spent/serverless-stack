@@ -16,6 +16,7 @@ def test(url):
         return newsList, newsList[0]['link']
     return None, None
 
+# ES_PUBLISH=True BYPASS_CACHE=True python3 test.py
 # run({'source': SOURCE_SANOOK}, {})
 # run({'source': SOURCE_VOICETV}, {})
 # run({'source': SOURCE_MATICHON}, {})

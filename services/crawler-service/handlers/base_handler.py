@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 
-from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, LOCAL, QUEUE_URL
+from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, ES_PUBLISH, LOCAL, QUEUE_URL
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
@@ -25,9 +25,11 @@ sqs = boto3.client('sqs')
 def deleteSoupElement(element):
     if(isinstance(element, list)):
         for e in element:
-            e.extract()
+            if(e):
+                e.extract()
     elif(element):
-        element.extract()
+        if(element):
+            element.extract()
 
 
 class BaseHandler(ABC, threading.Thread):
@@ -154,14 +156,17 @@ class BaseHandler(ABC, threading.Thread):
         hash_func = hash_func if hash_func is not None else self._hash_payload
         hash_value = hash_func(payload)
         keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
-        body = {'hash': hash_value, 'payload': dict_with_keys(payload, keys)} 
-        response = sqs.send_message(
-            QueueUrl=QUEUE_URL,
-            MessageBody=json.dumps(body)
-        )
-        print(response['MessageId'])
-        return response['MessageId']
-        # es.index(index=index, id=body['hash'], body=body['payload'])
+        body = {'hash': hash_value, 'payload': dict_with_keys(payload, keys)}
+        # local dev
+        if(ES_PUBLISH):
+            es.index(index=index, id=body['hash'], body=body['payload'])
+        else:
+            response = sqs.send_message(
+                QueueUrl=QUEUE_URL,
+                MessageBody=json.dumps(body)
+            )
+            print(response['MessageId'])
+            return response['MessageId']
 
 
 def requests_retry_session(
