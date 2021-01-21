@@ -32,6 +32,7 @@ provider:
     SOURCE_MATICHON: ${self:custom.sourceMatichon}
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
+    SOURCE_HACKERNOON: ${self:custom.sourceHackernoon}
     ES_INDEX: ${self:custom.es.index}
     QUEUE_URL: { Ref: CrawlerQueue }
   iamRoleStatements:
@@ -81,6 +82,7 @@ custom:
   sourceMatichon: 'มติชน'
   sourceVoicetv: 'Voice TV'
   sourceBeartai: 'beartai'
+  sourceHackernoon: 'hackernoon'
   # config:
   #   CACHE_INSTANCE_SIZE: cache.t2.micro
   lambdaIam:
@@ -137,6 +139,11 @@ functions:
           enabled: true
           input:
             source: ${self:custom.sourceBeartai}
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true
+          input:
+            source: ${self:custom.sourceHackernoon}
   send:
     handler: send_handler.run
     layers:

@@ -1,11 +1,12 @@
 import datetime
+from handlers.handler_hackernoon import HackernoonHandler
 from json import dumps
 
 from handlers.handler_beartai import BeartaiHandler
 from handlers.handler_matichon import MatichonHandler
 from handlers.handler_voicetv import VoiceTVHandler
 from logger import logger
-from constant import SOURCES, SOURCE_BEARTAI, SOURCE_SANOOK, SOURCE_MATICHON, SOURCE_VOICETV
+from constant import SOURCES, SOURCE_BEARTAI, SOURCE_HACKERNOON, SOURCE_SANOOK, SOURCE_MATICHON, SOURCE_VOICETV
 
 from handlers.handler_sanook import SanookHandler
 
@@ -38,6 +39,8 @@ def run(event, context):
             handlers = build_handlers(VoiceTVHandler, SOURCES[SOURCE_VOICETV])
         elif(source == SOURCE_BEARTAI):
             handlers = build_handlers(BeartaiHandler, SOURCES[SOURCE_BEARTAI])
+        elif(source == SOURCE_HACKERNOON):
+            handlers = build_handlers(HackernoonHandler, SOURCES[SOURCE_HACKERNOON])
 
         for handler in handlers:
             handler.start()

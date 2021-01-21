@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 
-from constant import BASE_MAP_CATEGORY, LOCAL, QUEUE_URL
+from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, LOCAL, QUEUE_URL
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
@@ -23,7 +23,10 @@ sqs = boto3.client('sqs')
 
 
 def deleteSoupElement(element):
-    if(element):
+    if(isinstance(element, list)):
+        for e in element:
+            e.extract()
+    elif(element):
         element.extract()
 
 
@@ -77,6 +80,8 @@ class BaseHandler(ABC, threading.Thread):
             return self.category_map.get(category, LOCAL)
 
     def set_cache_link(self, link):
+        if(BYPASS_CACHE):
+            return
         self.newsUrlTable.put_item(
             Item={
                 'url': link
@@ -85,6 +90,8 @@ class BaseHandler(ABC, threading.Thread):
         # self.cache.setex(link, HOURS_24, "True")
 
     def get_cache_link(self, link):
+        if(BYPASS_CACHE):
+            return None
         response = self.newsUrlTable.get_item(
             Key={
                 'url': link

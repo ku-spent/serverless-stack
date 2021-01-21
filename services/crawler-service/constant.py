@@ -10,6 +10,8 @@ SOURCE_VOICETV = os.getenv('SOURCE_VOICETV', 'Voice TV')
 
 SOURCE_BEARTAI = os.getenv('SOURCE_BEARTAI', 'beartai')
 
+SOURCE_HACKERNOON = os.getenv('SOURCE_HACKERNOON', 'hackernoon')
+
 CRAWL_DELAY = 0.8
 
 POLITICS = 'การเมือง'
@@ -27,6 +29,19 @@ LIFE = 'คุณภาพชีวิต'
 EDUCATION = 'การศึกษา'
 MOVIE = 'ภาพยนตร์'
 MUSIC = 'เพลง'
+AI = 'ai'
+DATA_SCIENCE = 'data-science'
+WEB_DEVELOPMENT = 'web-development'
+BIG_DATA = 'big-data'
+MARKETING = 'marketing'
+DL = 'deep-learning'
+ML = 'machine-learning'
+DS = 'data-science'
+CYBER_SECURITY = 'cybersecurity'
+BLOCKCHAIN = 'blockchain'
+BITCOIN = 'bitcoin'
+STARTUP = 'startups'
+
 
 SOURCES = {
     SOURCE_SANOOK: [
@@ -58,8 +73,20 @@ SOURCES = {
         {'category': MOVIE, 'url': 'https://www.beartai.com/category/lifestyle/tv-series'},
         {'category': MUSIC, 'url': 'https://www.beartai.com/category/lifestyle/music-lifestyle'},
         {'category': ENTERTAINMENT, 'url': 'https://www.beartai.com/category/lifestyle/entertainment'},
+    ],
+    SOURCE_HACKERNOON: [
+        {'category': STARTUP, 'url': 'https://hackernoon.com/tagged/startups/feed'},
+        {'category': MARKETING, 'url': 'https://hackernoon.com/tagged/marketing/feed'},
+        {'category': DL, 'url': 'https://hackernoon.com/tagged/deep-learning/feed'},
+        {'category': ML, 'url': 'https://hackernoon.com/tagged/machine-learning/feed'},
+        {'category': DS, 'url': 'https://hackernoon.com/tagged/data-science/feed'},
+        {'category': CYBER_SECURITY, 'url': 'https://hackernoon.com/tagged/cybersecurity/feed'},
+        {'category': BIG_DATA, 'url': 'https://hackernoon.com/tagged/big-data/feed'},
+        {'category': BLOCKCHAIN, 'url': 'https://hackernoon.com/tagged/blockchain/feed'},
+        {'category': BITCOIN, 'url': 'https://hackernoon.com/tagged/bitcoin/feed'},
+        {'category': WEB_DEVELOPMENT, 'url': 'https://hackernoon.com/tagged/web-development/feed'},
+        {'category': AI, 'url': 'https://hackernoon.com/tagged/ai/feed'},
     ]
-    
 }
 
 BASE_MAP_CATEGORY = {
@@ -87,6 +114,7 @@ ACCESS_KEY = os.getenv('ACCESS_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ES_INDEX = os.getenv('ES_INDEX', 'rss-feed-3')
 QUEUE_URL = os.getenv('QUEUE_URL', '')
+BYPASS_CACHE = bool(os.getenv('BYPASS_CACHE', 'False'))
 
 # TEXT_CLASSIFY_ENDPOINT = os.getenv('TEXT_CLASSIFY_ENDPOINT')
 # NEWS_TABLE_NAME = os.getenv('NEWS_TABLE_NAME')
