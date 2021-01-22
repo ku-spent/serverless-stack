@@ -41,7 +41,7 @@ CYBER_SECURITY = 'cybersecurity'
 BLOCKCHAIN = 'blockchain'
 BITCOIN = 'bitcoin'
 STARTUP = 'startups'
-
+PROGRAMMING = 'programming'
 
 SOURCES = {
     SOURCE_SANOOK: [
@@ -86,6 +86,7 @@ SOURCES = {
         {'category': BITCOIN, 'url': 'https://hackernoon.com/tagged/bitcoin/feed'},
         {'category': WEB_DEVELOPMENT, 'url': 'https://hackernoon.com/tagged/web-development/feed'},
         {'category': AI, 'url': 'https://hackernoon.com/tagged/ai/feed'},
+        {'category': PROGRAMMING, 'url': 'https://hackernoon.com/tagged/programming/feed'},
     ]
 }
 

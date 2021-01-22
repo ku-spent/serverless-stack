@@ -46,8 +46,6 @@ class HackernoonHandler(BaseHandler):
             deleteSoupElement(content_tag.find('section'))
             deleteSoupElement(content_tag.select('div[class*="CallToAction"]'))
             data['raw_html_content'] = str(content_tag)
-            with open('test.html', 'w') as f:
-                f.write(data['raw_html_content'])
             return data
         except Exception:
             traceback.print_exc()
