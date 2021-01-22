@@ -11,7 +11,7 @@ const search: Handler = async (event, context) => {
     .query(
       esb
         .functionScoreQuery()
-        .query(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('or'))
+        .query(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('or').minimumShouldMatch('50%'))
         .functions([
           esb.weightScoreFunction().filter(esb.rangeQuery('pubDate').gte('now-7d').lt('now')).weight(5),
           esb.weightScoreFunction().filter(esb.rangeQuery('pubDate').gte('now-1m').lt('now-7d')).weight(2),
