@@ -1,0 +1,128 @@
+service: spent-service-event
+
+frameworkVersion: '2'
+
+plugins:
+  # serverless reserve $ then use pseudo to interpolate # -> $
+  - serverless-pseudo-parameters
+  - serverless-python-requirements
+  - serverless-offline
+  - serverless-iam-roles-per-function
+  - serverless-dotenv-plugin
+
+package:
+  individually: true
+
+custom:
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+
+  pythonRequirements:
+    layer: true
+    useStaticCache: true
+    dockerizePip: non-linux
+
+provider:
+  name: aws
+  runtime: python3.8
+  memorySize: 128
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  versionFunctions: false
+  tracing:
+    apiGateway: true
+    lambda: true
+  # apiGateway:
+  #   restApiId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiId
+  #   restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: 'Allow'
+      Action:
+        - 'lambda:InvokeFunction'
+      Resource: '*'
+    - Effect: 'Allow'
+      Action:
+        - 'events:PutEvents'
+      Resource: '*'
+
+resources:
+  Resources:
+    SegmentCrossAccountLambdaExecutionRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        Description: 'Required role for Segment to execute a Lambda from the Segment Personalize destination.'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS:
+                  - arn:aws:iam::595280932656:root
+              Action:
+                - 'sts:AssumeRole'
+              Condition:
+                StringEquals:
+                  'sts:ExternalId': 'mdJPPtTHoyzqGKcxYQCFAf'
+        Path: /
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource:
+                    - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:spent-service-event-dev-segment-personalize-event-destination'
+
+    SegmentPersonalizeDestinationLambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Description: 'Execution role for the two Lambdas provided with the Segment.'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+        Path: /
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/spent-service-event-dev-segment-personalize-event-destination*:log-stream:*'
+                    - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/spent-service-event-dev-segment-personalize-event-destination*'
+                # - Effect: Allow
+                #   Action:
+                #     - ssm:GetParameter
+                #   Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/retaildemostore-*'
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - personalize:GetRecommendations
+                    - personalize:PutEvents
+                  Resource: '*'
+  Outputs:
+    SegmentPersonalizeEventsLambdaFunctionArn:
+      Value: !GetAtt SegmentPersonalizeDestinationLambdaExecutionRole.Arn
+      Export:
+        Name: ${self:custom.spentApp}-ExtSegmentPersonalizeEventsLambdaFunctionArn
+
+functions:
+  segment-personalize-event-destination:
+    handler: handler.run
+    role: SegmentPersonalizeDestinationLambdaExecutionRole
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    timeout: 900

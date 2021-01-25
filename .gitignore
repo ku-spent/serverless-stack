@@ -8,3 +8,5 @@ __pycache__
 .dynamodb
 rss-feed-*
 .build
+.virtual_documents
+.ipynb_checkpoints
