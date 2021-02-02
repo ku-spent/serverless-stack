@@ -34,7 +34,6 @@ provider:
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     SOURCE_HACKERNOON: ${self:custom.sourceHackernoon}
     WEB_ES_INDEX: ${self:custom.es.webIndex}
-    GOOGLE_ES_INDEX: ${self:custom.es.googleIndex}
     QUEUE_URL: { Ref: CrawlerQueue }
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
@@ -109,7 +108,7 @@ custom:
 resources:
   - ${file(resources/sqs-resource.yml)}
   - ${file(resources/dynamodb-resource.yml)}
-  - Output:
+  - Outputs:
       CrawlerSQS:
         Value:
           Ref: CrawlerQueue
