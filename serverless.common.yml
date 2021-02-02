@@ -16,7 +16,7 @@ custom:
   userPoolArn: arn:aws:cognito-idp:ap-southeast-1:268400237357:userpool/ap-southeast-1_5BfiF60iL
   dynamodbUserTableName: User-medbyyi23jdsjiee4goo376ofq-dev
   authorizerArn: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:spent-service-auth-dev-auth
-  kinisisDataStreamArn: arn:aws:kinesis:ap-southeast-1:268400237357:stream/spent-pinpoint-event
+  kinisisDataStreamArn: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/spent-pinpoint-event
   authorizer:
     arn: ${self:custom.authorizerArn}
     managedExternally: false

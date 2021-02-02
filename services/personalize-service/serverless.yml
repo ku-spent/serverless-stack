@@ -18,42 +18,57 @@ custom: ${file(../../serverless.common.yml):custom}
 provider:
   name: aws
   runtime: nodejs12.x
-  memorySize: 256
+  memorySize: 128
   stage: ${opt:stage, 'dev'}
   region: ap-southeast-1
 
 resources:
   Resources:
-    PinpointKinesisRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: pinpoint.amazonaws.com
-              Action:
-                - sts:AssumeRole
-        Policies:
-          - PolicyName: 'PinpointKinisisDataStream'
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - kinesis:PutRecords
-                    - kinesis:DescribeStream
-                  Resource:
-                    - ${self:custom.kinisisDataStreamArn}
+    # PintpointKinesisDataStream:
+    #   Type: AWS::Kinesis::Stream
+    #   Properties:
+    #     Name: ${self:custom.spentApp}-pinpoint-kinesis-datastream
+    #     ShardCount: 1
+    # PinpointKinesisRole:
+    #   Type: AWS::IAM::Role
+    #   Properties:
+    #     RoleName: ${self:custom.spentApp}-pinpoint-kinesis-datastream-role
+    #     AssumeRolePolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal:
+    #             Service: pinpoint.amazonaws.com
+    #           Action:
+    #             - sts:AssumeRole
+    #     Policies:
+    #       - PolicyName: 'PinpointKinisisDataStream'
+    #         PolicyDocument:
+    #           Version: '2012-10-17'
+    #           Statement:
+    #             - Effect: Allow
+    #               Action:
+    #                 - kinesis:PutRecords
+    #                 - kinesis:DescribeStream
+    #               Resource:
+    #                 - !GetAtt PintpointKinesisDataStream.Arn
+  Outputs:
+    # PintpointKinesisDataStreamArn:
+    #   Value: !GetAtt PintpointKinesisDataStream.Arn
+    #   Export:
+    #     Name: ${self:custom.spentApp}-ExtPintpointKinesisDataStreamArn
+    # PinpointKinesisRoleArn:
+    #   Value: !GetAtt PinpointKinesisRole.Arn
+    #   Export:
+    #     Name: ${self:custom.spentApp}-ExtPinpointKinesisRoleArn
 
 functions:
-  compute:
+  processPinpointEvent:
     handler: src/handlers/pinpointStreaming.handler
-    events:
-      - stream:
-          type: kinesis
-          arn: arn:aws:kinesis:ap-southeast-1:268400237357:stream/spent-pinpoint-event
-          consumer: true
-          batchSize: 5
-          startingPosition: LATEST
+    # events:
+    #   - stream:
+    #       type: kinesis
+    #       arn: !GetAtt PintpointKinesisDataStream.Arn
+    #       consumer: true
+    #       batchSize: 5
+    #       startingPosition: LATEST
