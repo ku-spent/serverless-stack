@@ -1,0 +1,3 @@
+dict-hash==1.1.14
+boto3==1.16.50
+pytrends==4.7.3

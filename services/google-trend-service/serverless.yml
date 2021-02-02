@@ -1,0 +1,64 @@
+service: spent-service-google-trend
+
+frameworkVersion: '2'
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-python-requirements
+  - serverless-offline
+  - serverless-iam-roles-per-function
+  - serverless-dotenv-plugin
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+
+provider:
+  name: aws
+  runtime: python3.8
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  versionFunctions: false
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+  environment:
+    ELASTICSEACH_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
+    QUEUE_URL: !ImportValue ${self:custom.spentApp}-ExtCrawlerSQS
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+
+custom:
+  pythonRequirements:
+    layer: true
+    useStaticCache: true
+    dockerizePip: non-linux
+
+  crawConfig:
+    timeout: 30
+    rate: rate(1 hour)
+
+  es:
+    googleIndex: 'google-trends'
+
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+
+resources:
+  - ${file(resources/sqs-resource.yml)}
+  - ${file(resources/dynamodb-resource.yml)}
+
+functions:
+  googleCrawler:
+    handler: 'handler.run'
+    module: 'google_crawler'
+    iamRoleStatements: ${self:custom.lambdaIam}
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - schedule:
+          rate: ${self:custom.crawConfig.rate}
+          enabled: true

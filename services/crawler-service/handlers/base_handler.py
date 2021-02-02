@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 
-from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, ES_PUBLISH, LOCAL, QUEUE_URL
+from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, ES_PUBLISH, LOCAL, QUEUE_URL, WEB_ES_INDEX
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
@@ -156,7 +156,7 @@ class BaseHandler(ABC, threading.Thread):
         hash_func = hash_func if hash_func is not None else self._hash_payload
         hash_value = hash_func(payload)
         keys = {'id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content'}
-        body = {'hash': hash_value, 'payload': dict_with_keys(payload, keys)}
+        body = {'index': WEB_ES_INDEX, 'hash': hash_value, 'payload': dict_with_keys(payload, keys)}
         # local dev
         if(ES_PUBLISH):
             es.index(index=index, id=body['hash'], body=body['payload'])

@@ -1,4 +1,5 @@
-from handler import run
+# from web_crawler.handler import run
+from google_crawler.handler import run
 from constant import SOURCE_BEARTAI, SOURCE_HACKERNOON, SOURCE_MATICHON, SOURCE_SANOOK, SOURCE_VOICETV
 # from handlers.handler_sanook import SanookHandler
 import feedparser

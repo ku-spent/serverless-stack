@@ -14,6 +14,8 @@ plugins:
 
 package:
   individually: true
+  exclude:
+    - node_modules/**
 
 provider:
   name: aws
@@ -33,7 +35,8 @@ provider:
     SOURCE_VOICETV: ${self:custom.sourceVoicetv}
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     SOURCE_HACKERNOON: ${self:custom.sourceHackernoon}
-    ES_INDEX: ${self:custom.es.index}
+    WEB_ES_INDEX: ${self:custom.es.webIndex}
+    GOOGLE_ES_INDEX: ${self:custom.es.googleIndex}
     QUEUE_URL: { Ref: CrawlerQueue }
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
@@ -49,7 +52,7 @@ custom:
     rate: rate(10 minutes)
 
   es:
-    index: 'rss-feed-3'
+    webIndex: 'rss-feed-3'
 
   sqs:
     arn: !GetAtt CrawlerQueue.Arn
@@ -83,8 +86,6 @@ custom:
   sourceVoicetv: 'Voice TV'
   sourceBeartai: 'beartai'
   sourceHackernoon: 'hackernoon'
-  # config:
-  #   CACHE_INSTANCE_SIZE: cache.t2.micro
   lambdaIam:
     - Effect: Allow
       Action:
@@ -110,10 +111,16 @@ custom:
 resources:
   - ${file(resources/sqs-resource.yml)}
   - ${file(resources/dynamodb-resource.yml)}
+  - Output:
+      CrawlerSQS:
+        Value:
+          Ref: CrawlerQueue
+        Export:
+          Name: ${self:custom.stage}-ExtCrawlerSQS
 
 functions:
   crawler:
-    handler: handler.run
+    handler: 'handler.run'
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     timeout: ${self:custom.crawConfig.timeout}
@@ -145,7 +152,7 @@ functions:
           input:
             source: ${self:custom.sourceHackernoon}
   send:
-    handler: send_handler.run
+    handler: 'send_handler.run'
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     timeout: ${self:custom.crawConfig.timeout}
