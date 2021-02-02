@@ -5,10 +5,8 @@ frameworkVersion: '2'
 plugins:
   - serverless-pseudo-parameters
   - serverless-python-requirements
-  - serverless-offline
   - serverless-iam-roles-per-function
   - serverless-dotenv-plugin
-  - serverless-step-functions
   - serverless-dynamodb-local
   - serverless-dynamodb-autoscaling
 
