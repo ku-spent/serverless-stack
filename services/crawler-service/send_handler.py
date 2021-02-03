@@ -21,10 +21,10 @@ def run(event, context):
         print(len(records))
         for record in records:
             index = record['index']
-            if(index == WEB_ES_INDEX or index == GOOGLE_ES_INDEX):
+            if(len(index) > 0):
                 es.index(index=index, id=record['hash'], body=record['payload'])
             else:
-                raise 'Invalid index'
+                raise Exception('Invalid index')
 
         return 'Complete send payloads service'
 

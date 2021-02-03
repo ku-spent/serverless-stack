@@ -1,5 +1,5 @@
 # from web_crawler.handler import run
-from google_crawler.handler import run
+from handler import run
 from constant import SOURCE_BEARTAI, SOURCE_HACKERNOON, SOURCE_MATICHON, SOURCE_SANOOK, SOURCE_VOICETV
 # from handlers.handler_sanook import SanookHandler
 import feedparser
@@ -18,10 +18,10 @@ def test(url):
     return None, None
 
 # ES_PUBLISH=True BYPASS_CACHE=True python3 test.py
-# run({'source': SOURCE_SANOOK}, {})
-# run({'source': SOURCE_VOICETV}, {})
-# run({'source': SOURCE_MATICHON}, {})
-# run({'source': SOURCE_BEARTAI}, {})
+run({'source': SOURCE_SANOOK}, {})
+run({'source': SOURCE_VOICETV}, {})
+run({'source': SOURCE_MATICHON}, {})
+run({'source': SOURCE_BEARTAI}, {})
 run({'source': SOURCE_HACKERNOON}, {})
 
 # pool = redis.ConnectionPool(host='localhost', port=6379, db=0)

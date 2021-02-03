@@ -22,7 +22,7 @@ def run(event, context):
         pytrends = TrendReq(hl='th-TH', geo='TH')
         trends = pytrends.trending_searches(pn='thailand')
         formated_trends = [data[0] for data in list(trends.to_numpy())]
-        now = datetime.datetime.now().isoformat() + '+07:00'
+        now = datetime.datetime.utcnow().isoformat() + '+00:00'
         payload = {'trends': formated_trends, 'createdAt': now}
         hash_value = sha256(payload)
 
@@ -35,6 +35,6 @@ def run(event, context):
         return response['MessageId']
 
     except Exception as e:
-        raise str(e)
+        raise e
     finally:
         print('Complete google crawler service')

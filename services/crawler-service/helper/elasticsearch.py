@@ -21,4 +21,4 @@ es = Elasticsearch(
     timeout=30, max_retries=10, retry_on_timeout=True
 )
 
-es.indices.create(index=index, ignore=400)
+# es.indices.create(index=index, ignore=400)

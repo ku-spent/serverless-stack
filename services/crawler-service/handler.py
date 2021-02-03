@@ -48,6 +48,6 @@ def run(event, context):
             handler.join()
 
     except Exception as e:
-        raise str(e)
+        raise e
     finally:
         print('Complete crawler service')

@@ -7,6 +7,7 @@ plugins:
   - serverless-python-requirements
   - serverless-iam-roles-per-function
   - serverless-dotenv-plugin
+  - serverless-offline
 
 package:
   individually: true
@@ -24,10 +25,13 @@ provider:
     apiGateway: true
     lambda: true
   environment:
-    ELASTICSEACH_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-    QUEUE_URL: !ImportValue ${self:custom.spentApp}-ExtCrawlerSQS
+    GOOGLE_ES_INDEX: ${self:custom.es.googleIndex}
+    QUEUE_URL: !ImportValue ${self:custom.spentApp}-ExtCrawlerSQSUrl
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action: 'sqs:SendMessage'
+      Resource: !ImportValue ${self:custom.spentApp}-ExtCrawlerSQSArn
 
 custom:
   pythonRequirements:
@@ -46,14 +50,9 @@ custom:
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
 
-resources:
-  - ${file(resources/sqs-resource.yml)}
-  - ${file(resources/dynamodb-resource.yml)}
-
 functions:
   googleCrawler:
     handler: handler.run
-    iamRoleStatements: ${self:custom.lambdaIam}
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     events:
