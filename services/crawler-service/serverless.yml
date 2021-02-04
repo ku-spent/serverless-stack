@@ -35,11 +35,12 @@ provider:
     SOURCE_HACKERNOON: ${self:custom.sourceHackernoon}
     WEB_ES_INDEX: ${self:custom.es.webIndex}
     QUEUE_URL: { Ref: CrawlerQueue }
+    SNS_ARN: ${self:custom.sns.crawlerTopicArn}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
-      Resource: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:spent-service-*
       Action: 'sqs:*'
+      Resource: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:spent-service-*
 
 custom:
   pythonRequirements:
@@ -56,6 +57,9 @@ custom:
 
   sqs:
     arn: !GetAtt CrawlerQueue.Arn
+
+  sns:
+    crawlerTopicArn: !Ref CrawlerTopic
 
   capacities:
     - table: NewsUrl # DynamoDB Resource
@@ -93,6 +97,10 @@ custom:
       Resource: ${self:custom.sqs.arn}
     - Effect: Allow
       Action:
+        - sns:*
+      Resource: ${self:custom.sns.crawlerTopicArn}
+    - Effect: Allow
+      Action:
         - dynamodb:Query
         - dynamodb:Scan
         - dynamodb:GetItem
@@ -111,7 +119,16 @@ custom:
 resources:
   - ${file(resources/sqs-resource.yml)}
   - ${file(resources/dynamodb-resource.yml)}
+  - Resources:
+      CrawlerTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+          TopicName: CrawlerNews
   - Outputs:
+      CrawlerTopicArn:
+        Value: !Ref CrawlerTopic
+        Export:
+          Name: ${self:custom.spentApp}-ExtCrawlerTopicArn
       CrawlerSQSUrl:
         Value:
           Ref: CrawlerQueue

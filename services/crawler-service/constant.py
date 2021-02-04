@@ -118,7 +118,7 @@ GOOGLE_ES_INDEX = os.getenv('GOOGLE_ES_INDEX', '')
 QUEUE_URL = os.getenv('QUEUE_URL', '')
 BYPASS_CACHE = bool(os.getenv('BYPASS_CACHE', False))
 ES_PUBLISH = bool(os.getenv('ES_PUBLISH', False))
-
+SNS_ARN = os.getenv('SNS_ARN', '')
 # TEXT_CLASSIFY_ENDPOINT = os.getenv('TEXT_CLASSIFY_ENDPOINT')
 # NEWS_TABLE_NAME = os.getenv('NEWS_TABLE_NAME')
 # APPSYNC_COGNITO_USERNAME = os.getenv('COGNITO_ADMIN_USERNAME')

@@ -7,7 +7,7 @@ from requests.adapters import HTTPAdapter
 from requests.models import HTTPError
 from requests.packages.urllib3.util.retry import Retry
 
-from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, ES_PUBLISH, LOCAL, QUEUE_URL, WEB_ES_INDEX
+from constant import BASE_MAP_CATEGORY, BYPASS_CACHE, ES_PUBLISH, LOCAL, QUEUE_URL, SNS_ARN, WEB_ES_INDEX
 from helper.elasticsearch import es, index
 from handlers.pre_processing import clean_summary, dict_with_keys, ensureHttps
 
@@ -20,7 +20,7 @@ HOURS_24 = 24 * 60 * 60
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'}
 
 sqs = boto3.client('sqs')
-
+sns = boto3.client('sns')
 
 def deleteSoupElement(element):
     if(isinstance(element, list)):
@@ -161,11 +161,13 @@ class BaseHandler(ABC, threading.Thread):
         if(ES_PUBLISH):
             es.index(index=index, id=body['hash'], body=body['payload'])
         else:
-            response = sqs.send_message(
-                QueueUrl=QUEUE_URL,
-                MessageBody=json.dumps(body)
-            )
-            print(response['MessageId'])
+            # response = sqs.send_message(
+            #     QueueUrl=QUEUE_URL,
+            #     MessageBody=json.dumps(body)
+            # )
+            # print(response['MessageId'])
+
+            response = sns.publish(TopicArn=SNS_ARN, Message=json.dumps(body), MessageAttributes={'crawlType': {'DataType': 'String', 'StringValue': 'news'}})
             return response['MessageId']
 
 

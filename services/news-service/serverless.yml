@@ -1,0 +1,82 @@
+service: spent-service-news
+
+frameworkVersion: '2'
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-pseudo-parameters
+  - serverless-plugin-typescript
+  - serverless-iam-roles-per-function
+  - '@agiledigital/serverless-sns-sqs-lambda'
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 128
+  stage: ${opt:stage, 'dev'}
+  versionFunctions: false
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+  environment:
+    ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
+    ES_INDEX: rss-feed-3
+
+  iamRoleStatements:
+    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action:
+        - es:*
+      Resource:
+        - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+        - !Join
+          - ''
+          - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+            - '/*'
+
+custom:
+  crawConfig:
+    timeout: 120
+    rate: rate(10 minutes)
+
+  es:
+    webIndex: 'rss-feed-3'
+
+  sns:
+    crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
+
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+  lambdaIam:
+    - Effect: Allow
+      Action:
+        - sns:*
+      Resource: ${self:custom.sns.crawlerTopicArn}
+    - Effect: Allow
+      Action:
+        - es:*
+      Resource:
+        - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+        - !Join
+          - ''
+          - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+            - '/*'
+
+functions:
+  crawlerConsumer:
+    handler: 'src/crawlerConsumer.handler'
+    events:
+      - snsSqs:
+          name: crawlerConsumer # Required - choose a name prefix for the event queue
+          topicArn: ${self:custom.sns.crawlerTopicArn} # Required - SNS topic to subscribe to
+          batchSize: 10 # Optional - default value is 10
+          maxRetryCount: 2 # Optional - default value is 5
+          filterPolicy: # Optional - filter messages that are handled
+            crawlType:
+              - news
