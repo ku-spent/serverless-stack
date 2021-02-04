@@ -10,3 +10,5 @@ rss-feed-*
 .build
 .virtual_documents
 .ipynb_checkpoints
+*.json.gz
+services/personalize-service/generator/data
