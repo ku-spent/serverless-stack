@@ -11,7 +11,14 @@ const search: Handler = async (event, context) => {
     .query(
       esb
         .functionScoreQuery()
-        .query(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('or').minimumShouldMatch('50%'))
+        .query(
+          esb
+            .boolQuery()
+            .must(esb.multiMatchQuery().query(q).fields(['title', 'summary', 'tags']).operator('or'))
+            .should(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('or').type('phrase').boost(4))
+            .should(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('and').boost(2))
+            .should(esb.matchQuery('tags').query(q).boost(10))
+        )
         .functions([
           esb.weightScoreFunction().filter(esb.rangeQuery('pubDate').gte('now-7d').lt('now')).weight(5),
           esb.weightScoreFunction().filter(esb.rangeQuery('pubDate').gte('now-1m').lt('now-7d')).weight(2),

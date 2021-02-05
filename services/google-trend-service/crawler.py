@@ -10,7 +10,7 @@ from constant import EXTERNAL_TRENDS_ES_INDEX
 SOURCE = 'thairath'
 
 
-def run(event, context):
+def handler(event, context):
     current_time = datetime.datetime.now().time()
     logger.info(f'event: {dumps(event)}')
     try:

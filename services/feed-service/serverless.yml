@@ -9,11 +9,26 @@ plugins:
   - serverless-offline
   - serverless-iam-roles-per-function
   - serverless-dotenv-plugin
+  - serverless-api-gateway-caching
+  - serverless-layers
 
 package:
   individually: true
 
-custom: ${file(../../serverless.common.yml):custom}
+custom:
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+  userPoolId: ${file(../../serverless.common.yml):custom.userPoolId}
+  userPoolArn: ${file(../../serverless.common.yml):custom.userPoolArn}
+  authorizer: ${file(../../serverless.common.yml):custom.authorizer}
+  authorizerArn: ${file(../../serverless.common.yml):custom.authorizerArn}
+
+  apiGatewayCaching:
+    enabled: true
+
+  serverless-layers:
+    dependenciesPath: ./package.json
 
 provider:
   name: aws
@@ -25,9 +40,12 @@ provider:
     apiGateway: true
     lambda: true
   environment:
+    TREND_LAMBDA_NAME: !ImportValue ${self:custom.stage}-ExtLatestTrendingName
+    ES_INDEX: rss-feed-3
     USERPOOL_ID: ${self:custom.userPoolId}
     ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-    ES_INDEX_RSS: rss-feed-3
+  # deploymentBucket:
+  #   name: ${self:service}-deployment-bucket
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
@@ -39,6 +57,10 @@ provider:
           - ''
           - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
             - '/*'
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: !ImportValue ${self:custom.stage}-ExtLatestTrendingArn
 
 resources:
   # API Gateway Errors
@@ -87,16 +109,9 @@ functions:
           method: GET
           path: /news
           authorizer: ${self:custom.authorizer}
-    # iamRoleStatements:
-    #   - Effect: Allow
-    #     Action:
-    #       - es:*
-    #     Resource:
-    #       - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-    #       - !Join
-    #         - ''
-    #         - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-    #           - '/*'
+          caching:
+            enabled: true
+            ttlInSeconds: 300
 
   search:
     handler: src/handlers/search.handler
@@ -105,13 +120,14 @@ functions:
           method: GET
           path: /search
           authorizer: ${self:custom.authorizer}
-    # iamRoleStatements:
-    #   - Effect: Allow
-    #     Action:
-    #       - es:*
-    #     Resource:
-    #       - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-    #       - !Join
-    #         - ''
-    #         - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
-    #           - '/*'
+
+  trending:
+    handler: src/handlers/trending.handler
+    events:
+      - http:
+          method: GET
+          path: /trending
+          authorizer: ${self:custom.authorizer}
+          caching:
+            enabled: true
+            ttlInSeconds: 300

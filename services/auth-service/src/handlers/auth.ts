@@ -100,6 +100,8 @@ function ValidateToken(pems, event, context) {
   policy.allowMethod(AuthPolicy.HttpVerb.GET, '/news/*')
   policy.allowMethod(AuthPolicy.HttpVerb.GET, '/search')
   policy.allowMethod(AuthPolicy.HttpVerb.GET, '/search/*')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/trending')
+  policy.allowMethod(AuthPolicy.HttpVerb.GET, '/trending/*')
 
   context.succeed(policy.build())
 
