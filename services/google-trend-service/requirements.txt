@@ -1,3 +1,5 @@
-dict-hash==1.1.14
 boto3==1.16.50
-pytrends==4.7.3
+beautifulsoup4==4.9.3
+requests==2.25.1
+requests-aws4auth==1.0.1
+elasticsearch==7.10.1

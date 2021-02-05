@@ -1,12 +1,13 @@
-from constant import GOOGLE_ES_INDEX, QUEUE_URL
 import datetime
-import boto3
 from json import dumps
+import json
 from logger import logger
-from pytrends.request import TrendReq
-from dict_hash import sha256
+from bs4 import BeautifulSoup
 
-sqs = boto3.client('sqs')
+from helper import get_raw_html, es_client
+from constant import EXTERNAL_TRENDS_ES_INDEX
+
+SOURCE = 'thairath'
 
 
 def run(event, context):
@@ -19,22 +20,19 @@ def run(event, context):
         pass
 
     try:
-        pytrends = TrendReq(hl='th-TH', geo='TH')
-        trends = pytrends.trending_searches(pn='thailand')
-        formated_trends = [data[0] for data in list(trends.to_numpy())]
-        now = datetime.datetime.utcnow().isoformat() + '+00:00'
-        payload = {'trends': formated_trends, 'createdAt': now}
-        hash_value = sha256(payload)
+        raw_html = get_raw_html('https://www.thairath.co.th/tags/trending')
+        soup = BeautifulSoup(raw_html, 'html.parser')
+        tags = soup.find('main').find('div').find_all('div', recursive=False)[2].find_all('div')[5].find_all('a')
 
-        body = {'index': GOOGLE_ES_INDEX, 'hash': hash_value, 'payload': payload}
-        response = sqs.send_message(
-            QueueUrl=QUEUE_URL,
-            MessageBody=dumps(body)
-        )
-        print(response['MessageId'])
-        return response['MessageId']
+        trends = [tag.get_text() for tag in tags]
+        now = datetime.datetime.utcnow().isoformat() + '+00:00'
+        payload = {'source': SOURCE, 'trends': trends, 'createdAt': now}
+
+        res = es_client.index(index=EXTERNAL_TRENDS_ES_INDEX, body=payload)
+        print(json.dumps(res))
+        return res
 
     except Exception as e:
         raise e
     finally:
-        print('Complete google crawler service')
+        print('Complete external trends crawler service')

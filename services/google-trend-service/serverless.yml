@@ -1,4 +1,4 @@
-service: spent-service-google-trend
+service: spent-service-crawler-trend
 
 frameworkVersion: '2'
 
@@ -17,7 +17,7 @@ package:
 provider:
   name: aws
   runtime: python3.8
-  memorySize: 256
+  memorySize: 128
   stage: ${opt:stage, 'dev'}
   versionFunctions: false
   region: ap-southeast-1
@@ -25,13 +25,20 @@ provider:
     apiGateway: true
     lambda: true
   environment:
-    GOOGLE_ES_INDEX: ${self:custom.es.googleIndex}
-    QUEUE_URL: !ImportValue ${self:custom.spentApp}-ExtCrawlerSQSUrl
+    EXTERNAL_TRENDS_ES_INDEX: ${self:custom.es.externalIndex}
+    ELASTICSEACH_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
+
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
-      Action: 'sqs:SendMessage'
-      Resource: !ImportValue ${self:custom.spentApp}-ExtCrawlerSQSArn
+      Action:
+        - es:*
+      Resource:
+        - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+        - !Join
+          - ''
+          - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
+            - '/*'
 
 custom:
   pythonRequirements:
@@ -44,14 +51,14 @@ custom:
     rate: rate(1 hour)
 
   es:
-    googleIndex: 'google-trends'
+    externalIndex: 'external-trends'
 
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
 
 functions:
-  googleCrawler:
+  externalTrendsCrawler:
     handler: handler.run
     layers:
       - { Ref: PythonRequirementsLambdaLayer }

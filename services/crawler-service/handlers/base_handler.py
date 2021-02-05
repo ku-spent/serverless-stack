@@ -19,7 +19,7 @@ HOURS_24 = 24 * 60 * 60
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'}
 
-sqs = boto3.client('sqs')
+# sqs = boto3.client('sqs')
 sns = boto3.client('sns')
 
 def deleteSoupElement(element):
@@ -46,7 +46,6 @@ class BaseHandler(ABC, threading.Thread):
 
         # dynamoDB = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
         self.newsUrlTable = dynamoDB.Table('NewsUrl')
-        # pool = redis.ConnectionPool(host=REDIS_HOST, port=6379, db=0)
         # self.cache = redis.Redis(connection_pool=pool)
 
     @abstractmethod

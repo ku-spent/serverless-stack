@@ -1,4 +1,4 @@
 import os
 
-GOOGLE_ES_INDEX = os.getenv('GOOGLE_ES_INDEX', '')
-QUEUE_URL = os.getenv('QUEUE_URL', '')
+ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', '')
+EXTERNAL_TRENDS_ES_INDEX = os.getenv('EXTERNAL_TRENDS_ES_INDEX', '')

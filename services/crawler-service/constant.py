@@ -109,7 +109,6 @@ BASE_MAP_CATEGORY = {
 }
 
 ELASTIC_REGION = os.getenv('AWS_REGION', 'ap-southeast-1')
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
 ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', 'search-spent-eoyffh53pimfhjrbhiyf5gscqa.ap-southeast-1.es.amazonaws.com')
 ACCESS_KEY = os.getenv('ACCESS_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
