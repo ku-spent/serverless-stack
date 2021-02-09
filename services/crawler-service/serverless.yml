@@ -34,13 +34,9 @@ provider:
     SOURCE_BEARTAI: ${self:custom.sourceBeartai}
     SOURCE_HACKERNOON: ${self:custom.sourceHackernoon}
     WEB_ES_INDEX: ${self:custom.es.webIndex}
-    QUEUE_URL: { Ref: CrawlerQueue }
     SNS_ARN: ${self:custom.sns.crawlerTopicArn}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
-    - Effect: Allow
-      Action: 'sqs:*'
-      Resource: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:spent-service-*
 
 custom:
   pythonRequirements:
@@ -50,13 +46,10 @@ custom:
 
   crawConfig:
     timeout: 120
-    rate: rate(10 minutes)
+    rate: rate(30 minutes)
 
   es:
     webIndex: 'rss-feed-3'
-
-  # sqs:
-  #   arn: !GetAtt CrawlerQueue.Arn
 
   sns:
     crawlerTopicArn: !Ref CrawlerTopic
@@ -91,10 +84,6 @@ custom:
   sourceBeartai: 'beartai'
   sourceHackernoon: 'hackernoon'
   lambdaIam:
-    # - Effect: Allow
-    #   Action:
-    #     - sqs:*
-    #   Resource: ${self:custom.sqs.arn}
     - Effect: Allow
       Action:
         - sns:*
@@ -117,7 +106,6 @@ custom:
             - '/*'
 
 resources:
-  - ${file(resources/sqs-resource.yml)}
   - ${file(resources/dynamodb-resource.yml)}
   - Resources:
       CrawlerTopic:
@@ -129,15 +117,6 @@ resources:
         Value: !Ref CrawlerTopic
         Export:
           Name: ${self:custom.spentApp}-ExtCrawlerTopicArn
-      # CrawlerSQSUrl:
-      #   Value:
-      #     Ref: CrawlerQueue
-      #   Export:
-      #     Name: ${self:custom.spentApp}-ExtCrawlerSQSUrl
-      # CrawlerSQSArn:
-      #   Value: !GetAtt CrawlerQueue.Arn
-      #   Export:
-      #     Name: ${self:custom.spentApp}-ExtCrawlerSQSArn
 
 functions:
   crawler:
@@ -172,14 +151,3 @@ functions:
           enabled: true
           input:
             source: ${self:custom.sourceHackernoon}
-  # send:
-  #   handler: send_handler.run
-  #   layers:
-  #     - { Ref: PythonRequirementsLambdaLayer }
-  #   timeout: ${self:custom.crawConfig.timeout}
-  #   iamRoleStatements: ${self:custom.lambdaIam}
-  #   events:
-  #     - sqs:
-  #         arn: ${self:custom.sqs.arn}
-  #         batchSize: 10
-  #         maximumBatchingWindow: 60

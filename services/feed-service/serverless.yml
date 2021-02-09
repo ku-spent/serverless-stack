@@ -11,6 +11,7 @@ plugins:
   - serverless-dotenv-plugin
   - serverless-api-gateway-caching
   - serverless-layers
+  - serverless-deployment-bucket
 
 package:
   individually: true
@@ -25,7 +26,7 @@ custom:
   authorizerArn: ${file(../../serverless.common.yml):custom.authorizerArn}
 
   apiGatewayCaching:
-    enabled: true
+    enabled: false
 
   serverless-layers:
     dependenciesPath: ./package.json
@@ -44,8 +45,8 @@ provider:
     ES_INDEX: rss-feed-3
     USERPOOL_ID: ${self:custom.userPoolId}
     ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-  # deploymentBucket:
-  #   name: ${self:service}-deployment-bucket
+  deploymentBucket:
+    name: ${self:service}-deployment-bucket
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
@@ -112,6 +113,11 @@ functions:
           caching:
             enabled: true
             ttlInSeconds: 300
+            cacheKeyParameters:
+              - name: request.querystring.query
+              - name: request.querystring.queryField
+              - name: request.querystring.from
+              - name: request.querystring.size
 
   search:
     handler: src/handlers/search.handler
@@ -131,3 +137,6 @@ functions:
           caching:
             enabled: true
             ttlInSeconds: 300
+            cacheKeyParameters:
+              - name: request.querystring.from
+              - name: request.querystring.size

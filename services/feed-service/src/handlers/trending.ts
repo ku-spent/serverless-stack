@@ -13,7 +13,7 @@ interface TRENDING_RESPONSE {
   trends: string[]
 }
 
-const search = async (trend: string) => {
+const search = async (trend: string, newsSize: number) => {
   const requestBody = esb
     .requestBodySearch()
     .query(
@@ -36,16 +36,16 @@ const search = async (trend: string) => {
         ])
         .boostMode('multiply')
     )
-    .size(5)
+    .size(newsSize)
     .toJSON()
 
   const res = await esSearch(requestBody)
-  return { trend, news: res.hits.hits }
+  return { trend, news: res.hits.hits.filter((news) => news._score > 0) }
 }
 
 const trending: Handler = async (event, context) => {
   try {
-    const { from = 0, size = 5 } = event?.queryStringParameters
+    const { from = 0, size = 5, newsSize = 3 } = event?.queryStringParameters
     const data = await lambda
       .invoke({
         FunctionName: TREND_LAMBDA_NAME,
@@ -56,13 +56,16 @@ const trending: Handler = async (event, context) => {
 
     const response: TRENDING_RESPONSE = JSON.parse(data.Payload.toString())
     const { trends } = response
-    const top_5_trend_with_news = await Promise.all(trends.slice(from, from + size).map((trend) => search(trend)))
+    const top_5_trend_with_news = await Promise.all(
+      trends.slice(from, from + size).map((trend) => search(trend, newsSize))
+    )
+    const without_empty_news = top_5_trend_with_news.filter((trendingTopic) => trendingTopic.news.length > 0)
 
-    const body = { trends, feeds: top_5_trend_with_news }
+    const body = { trends, feeds: without_empty_news }
 
     return {
       statusCode: 200,
-      body: JSON.stringify(body),
+      body: JSON.stringify({ data: body }),
     }
   } catch (error) {
     return {
