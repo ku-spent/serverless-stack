@@ -42,14 +42,13 @@ age_dist = truncnorm((age_min - age_mean) / age_sd, (age_max - age_mean) / age_s
 # ]
 
 category_preference_personas = [
-    'การเมือง_ในประเทศ_เศรษฐกิจ_อาชญากรรม_กีฬา', 'เศรษฐกิจ_คุณภาพชีวิต_สังคม_ต่างประเทศ_ในประเทศ',
-    'ต่างประเทศ_เทคโนโลยี_เศรษฐกิจ_ในประเทศ_การเมือง', 'อาชญากรรม_ในประเทศ_สังคม_คุณภาพชีวิต_การเมือง',
-    'กีฬา_บันเทิง_ไลฟ์สไตล์_ต่างประเทศ_เทคโนโลยี', 'ในประเทศ_เศรษฐกิจ_การเมือง_สังคม_คุณภาพชีวิต',
-    'บันเทิง_ไลฟ์สไตล์_ภาพยนตร์_เพลง_กีฬา', 'ไลฟ์สไตล์_ภาพยนตร์_เพลง_บันเทิง_กีฬา',
-    'สังคม_คุณภาพชีวิต_อาชญากรรม_การเมือง_ในประเทศ',
-    'คุณภาพชีวิต_การเมือง_การศึกษา_ในประเทศ_สังคม', 'การศึกษา_เทคโนโลยี_คุณภาพชีวิต_ต่างประเทศ_การเมือง',
-    'เทคโนโลยี_ต่างประเทศ_ภาพยนตร์_เพลง_บันเทิง', 'ภาพยนตร์_เพลง_บันเทิง_ต่างประเทศ_ไลฟ์สไตล์',
-    'เพลง_เทคโนโลยี_ต่างประเทศ_อาชญากรรม_การเมือง'
+    'การเมือง_ในประเทศ_เศรษฐกิจ_อาชญากรรม', 'เศรษฐกิจ_คุณภาพชีวิต_สังคม_ต่างประเทศ',
+    'ในประเทศ_การเมือง_เทคโนโลยี_เศรษฐกิจ', 'อาชญากรรม_ในประเทศ_สังคม_การเมือง',
+    'กีฬา_บันเทิง_ไลฟ์สไตล์_ต่างประเทศ', 'กีฬา_การเมือง_สังคม_คุณภาพชีวิต',
+    'บันเทิง_ไลฟ์สไตล์_ภาพยนตร์_เทคโนโลยี', 'สังคม_อาชญากรรม_ในประเทศ_กีฬา',
+    'เทคโนโลยี_เศรษฐกิจ_ไลฟ์สไตล์_กีฬา', 'คุณภาพชีวิต_การเมือง_การศึกษา_ในประเทศ',
+    'การศึกษา_เทคโนโลยี_คุณภาพชีวิต_ต่างประเทศ', 'ต่างประเทศ_ภาพยนตร์_กีฬา_บันเทิง',
+    'ภาพยนตร์_บันเทิง_ต่างประเทศ_ไลฟ์สไตล์',
 ]
 
 discount_personas = [
@@ -74,8 +73,9 @@ class UserPool:
 
   def grow_pool(self, num_users):
     for i in range(num_users):
+      persona = category_preference_personas[self.last_id % len(category_preference_personas)]
       self.last_id += 1
-      user = User(str(self.last_id))
+      user = User(str(self.last_id), persona)
       self.users.append(user)
   
   def user(self, select_active=False):
@@ -123,7 +123,7 @@ class UserPool:
 
 
 class User:
-  def __init__(self, id_string=None):
+  def __init__(self, id_string=None, persona=None):
     if(id_string is not None):
       self.id = id_string
     else:
@@ -144,7 +144,8 @@ class User:
     self.name = f'{self.first_name} {self.last_name}'
     self.username = f'user{self.id}'
     # These are hard-coded from the AWS samples Retail Demo Store workshop
-    self.persona = random.choice(category_preference_personas)
+    # self.persona = random.choice(category_preference_personas)
+    self.persona = persona
     self.discount_persona = random.choice(discount_personas)
     self.traits = {}
 

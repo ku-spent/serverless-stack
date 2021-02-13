@@ -1,0 +1,32 @@
+{
+  "event_type": "BOOKMARK_NEWS",
+  "event_timestamp": 1611569638067,
+  "arrival_timestamp": 1611569668414,
+  "event_version": "3.1",
+  "application": {
+    "app_id": "d5ab8b3e1788464cbc67948ab042fbcc",
+    "cognito_identity_pool_id": "ap-southeast-1:4eb2e13e-1134-4642-b713-3f6940257051",
+    "package_name": "com.example.spent",
+    "sdk": {
+      "name": "aws-sdk-android",
+      "version": "2.19.2"
+    },
+    "title": "spent",
+    "version_code": "1"
+  },
+  "client": {
+    "client_id": "6e10a951-c0cf-4b12-af8d-826e66df0bc9",
+    "cognito_id": "ap-southeast-1:54eb963e-8c37-4f48-91e6-c4e7893c98ee"
+  },
+  "device": {
+    "platform": {}
+  },
+  "session": {
+    "session_id": "66df0bc9-20210125-090156177",
+    "start_timestamp": 1611565316177
+  },
+  "attributes": {
+    "news_id": "1ac89329-c40e-4c5f-829e-707abe93a055"
+  },
+  "awsAccountId": "268400237357"
+}

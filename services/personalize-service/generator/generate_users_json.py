@@ -22,7 +22,7 @@ datagenerator.users.Faker.seed(42)  # Deterministic randomness
 random.seed(42)  # Deterministic randomness
 np.random.seed(42)  # Deterministic randomness
 
-num_users = 300
+num_users = 400
 
 print('Generating {} random users...'.format(num_users))
 

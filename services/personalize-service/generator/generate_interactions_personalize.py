@@ -20,15 +20,15 @@ personalizeation campaign.
 import json
 import pandas as pd
 import numpy as np
+import uuid
 import time
 import csv
 from pathlib import Path
 import gzip
 import random
-import yaml
+from datetime import datetime, timedelta
 import logging
 from collections import defaultdict
-import sys
 
 # Keep things deterministic
 RANDOM_SEED = 0
@@ -37,12 +37,12 @@ RANDOM_SEED = 0
 GENERATED_DATA_ROOT = "data"
 
 # Interactions will be generated between these dates
-FIRST_TIMESTAMP = 1609459200  # 2021-01-01, 00:00:00
-LAST_TIMESTAMP = 1611964800  # 2021-01-30, 00:00:00
+FIRST_TIMESTAMP = int((datetime.now() - timedelta(days=7)).timestamp())
+LAST_TIMESTAMP = int(datetime.now().timestamp())
 
 # Users are set up with 3 news categories on their personas. If [0.6, 0.25, 0.15] it means
 # 60% of the time they'll choose a news from the first category, etc.
-CATEGORY_AFFINITY_PROBS = [0.6, 0.15, 0.10, 0.10, 0.05]
+CATEGORY_AFFINITY_PROBS = [0.5, 0.25, 0.15, 0.10]
 
 # After a news, there are this many news within the category that a user is likely to jump on next.
 # The purpose of this is to keep recommendations focused within the category if there are too many news
@@ -65,20 +65,38 @@ PROGRESS_MONITOR_SECONDS_UPDATE = 30
 
 # This is where stage.sh will pick them up from
 out_items_filename = f"{GENERATED_DATA_ROOT}/items.csv"
+out_items_raw_filename = f"{GENERATED_DATA_ROOT}/items_raw.csv"
 out_users_filename = f"{GENERATED_DATA_ROOT}/users.csv"
 out_interactions_filename = f"{GENERATED_DATA_ROOT}/interactions.csv"
 
 # The meaning of the below constants is described in the relevant notebook.
 
 # Minimum number of interactions to generate
-min_interactions = 6000
+min_interactions = 50000
 # min_interactions = 50000
 
 # Percentages of each event type to generate
 # view_news_percent = .07
-news_liked_percent = .3
-news_bookmarked_percent = .1
+news_liked_percent = .1
+news_bookmarked_percent = .05
 news_shared_percent = .02
+
+allowed_category = ["การเมือง", "เศรษฐกิจ", "ต่างประเทศ", "บันเทิง", "ในประเทศ", "กีฬา", "ไลฟ์สไตล์", "เทคโนโลยี", "สังคม", "คุณภาพชีวิต", "การศึกษา", "อาชญากรรม", "ภาพยนตร์"]
+map_category = {
+    'การเมือง': 'politics',
+    'เศรษฐกิจ': 'economic',
+    'ต่างประเทศ': 'world',
+    'บันเทิง': 'entertainment',
+    "ในประเทศ": 'local',
+    "กีฬา": 'sport',
+    "ไลฟ์สไตล์": 'lifestyle',
+    "เทคโนโลยี": 'technology',
+    "สังคม": 'social',
+    "คุณภาพชีวิต": 'life',
+    "การศึกษา": 'education',
+    "อาชญากรรม": 'crime',
+    "ภาพยนตร์": 'movie',
+}
 
 
 def generate_user_items(out_users_filename, out_items_filename, in_users_filename, in_news_filename):
@@ -101,18 +119,25 @@ def generate_user_items(out_users_filename, out_items_filename, in_users_filenam
 
     users_df = pd.DataFrame(users)
 
-    news_dataset_df = news_df[['id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content']]
-    news_dataset_df = news_dataset_df.rename(columns={'id': 'ITEM_ID', 'category': 'CATEGORY', 'tags': 'TAGS'})
-    news_dataset_df = news_dataset_df[news_dataset_df['pubDate'] > '2021-01-15']
-    news_dataset_df['TAGS'] = news_dataset_df['TAGS'].apply(lambda tags: '|'.join(tags))
-    news_dataset_df = news_dataset_df[['ITEM_ID', 'CATEGORY', 'TAGS']]
-    news_dataset_df.to_csv(out_items_filename, index=False)
+    news_df = news_df[['id', 'source', 'pubDate', 'url', 'image', 'title', 'summary', 'category', 'tags', 'raw_html_content']]
+    # news_dataset_df = news_dataset_df[news_dataset_df['pubDate'] > '2021-01-15']
+    news_df['tags'] = news_df['tags'].apply(lambda tags: '|'.join(tags))
+    news_df = news_df[news_df['category'].isin(allowed_category)]
+    # news_df['category'] = news_df['category'].apply(lambda c: map_category[c])
+    news_df = news_df.groupby('category').apply(lambda s: s.sample(90, replace=False))
+    news_df = news_df.drop_duplicates(['id'])
+    news_df.to_csv(out_items_raw_filename, index=False, encoding='utf-8')
+
+    news_dataset_df = news_df.rename(columns={'id': 'ITEM_ID', 'category': 'CATEGORY', 'tags': 'TAGS'})
+    news_dataset_df = news_dataset_df[['ITEM_ID', 'CATEGORY']]
+    news_dataset_df.to_csv(out_items_filename, index=False, encoding='utf-8')
 
     users_dataset_df = users_df[['id', 'age', 'gender']]
     users_dataset_df = users_dataset_df.rename(columns={'id': 'USER_ID', 'age': 'AGE', 'gender': 'GENDER'})
-
     users_dataset_df.to_csv(out_users_filename, index=False)
 
+    print(news_df.shape)
+    print(news_dataset_df.shape)
     return users_df, news_df
 
 
@@ -197,10 +222,10 @@ def generate_interactions(out_interactions_filename, users_df, news_df):
             persona = user['persona']
             preferred_categories = persona.split('_')
 
-            p = category_affinity_probs
-            # p_normalised = (category_affinity_probs * category_frequencies[preferred_categories].values)
-            # p_normalised /= p_normalised.sum()
-            # p = NORMALISE_PER_PRODUCT_WEIGHT * p_normalised + (1 - NORMALISE_PER_PRODUCT_WEIGHT) * category_affinity_probs
+            # p = category_affinity_probs
+            p_normalised = (category_affinity_probs * category_frequencies[preferred_categories].values)
+            p_normalised /= p_normalised.sum()
+            p = NORMALISE_PER_PRODUCT_WEIGHT * p_normalised + (1 - NORMALISE_PER_PRODUCT_WEIGHT) * category_affinity_probs
 
             # Select category based on weighted preference of category order.
             category = np.random.choice(preferred_categories, 1, p=p)[0]
