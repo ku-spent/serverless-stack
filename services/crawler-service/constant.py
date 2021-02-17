@@ -51,6 +51,9 @@ SOURCES = {
         {'category': TECHNOLOGY, 'url': 'https://www.sanook.com/hitech/archive/'},
         {'category': SPORT, 'url': 'https://www.sanook.com/sport/archive/'},
         {'category': LIFESTYLE, 'url': 'https://www.sanook.com/travel/archive/'},
+        {'category': MUSIC, 'url': 'https://www.sanook.com/music/archive/'},
+        {'category': LIFESTYLE, 'url': 'https://www.sanook.com/travel/'},
+        {'category': MOVIE, 'url': 'https://www.sanook.com/movie/archive/'},
     ],
     SOURCE_THAIPBS: [
     ],
@@ -112,7 +115,7 @@ ELASTIC_REGION = os.getenv('AWS_REGION', 'ap-southeast-1')
 ELASTICSEACH_HOST = os.getenv('ELASTICSEACH_HOST', 'search-spent-eoyffh53pimfhjrbhiyf5gscqa.ap-southeast-1.es.amazonaws.com')
 ACCESS_KEY = os.getenv('ACCESS_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
-WEB_ES_INDEX = os.getenv('WEB_ES_INDEX', '')
+WEB_ES_INDEX = os.getenv('WEB_ES_INDEX', 'rss-feed-3')
 GOOGLE_ES_INDEX = os.getenv('GOOGLE_ES_INDEX', '')
 BYPASS_CACHE = bool(os.getenv('BYPASS_CACHE', False))
 ES_PUBLISH = bool(os.getenv('ES_PUBLISH', False))

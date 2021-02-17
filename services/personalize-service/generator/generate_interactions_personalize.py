@@ -24,6 +24,7 @@ import uuid
 import time
 import csv
 from pathlib import Path
+from dateutil.parser import parse
 import gzip
 import random
 from datetime import datetime, timedelta
@@ -37,8 +38,8 @@ RANDOM_SEED = 0
 GENERATED_DATA_ROOT = "data"
 
 # Interactions will be generated between these dates
-FIRST_TIMESTAMP = int((datetime.now() - timedelta(days=7)).timestamp())
-LAST_TIMESTAMP = int(datetime.now().timestamp())
+FIRST_TIMESTAMP = int((datetime.now() - timedelta(days=8)).timestamp())
+LAST_TIMESTAMP = int((datetime.now() - timedelta(days=1)).timestamp())
 
 # Users are set up with 3 news categories on their personas. If [0.6, 0.25, 0.15] it means
 # 60% of the time they'll choose a news from the first category, etc.
@@ -47,10 +48,10 @@ CATEGORY_AFFINITY_PROBS = [0.5, 0.25, 0.15, 0.10]
 # After a news, there are this many news within the category that a user is likely to jump on next.
 # The purpose of this is to keep recommendations focused within the category if there are too many news
 # in a category, because at present the user profiles approach samples news from a category.
-NEWS_AFFINITY_N = 4
+NEWS_AFFINITY_N = 7
 
 # from 0 to 1. If 0 then news in busy categories get represented less. If 1 then all news same amount.
-NORMALISE_PER_PRODUCT_WEIGHT = 1.0
+NORMALISE_PER_PRODUCT_WEIGHT = 0.35
 
 # With this probability a news interaction will be with the news discounted
 # Here we go the other way - what is the probability that a news that a user is already interacting
@@ -81,7 +82,22 @@ news_liked_percent = .1
 news_bookmarked_percent = .05
 news_shared_percent = .02
 
-allowed_category = ["การเมือง", "เศรษฐกิจ", "ต่างประเทศ", "บันเทิง", "ในประเทศ", "กีฬา", "ไลฟ์สไตล์", "เทคโนโลยี", "สังคม", "คุณภาพชีวิต", "การศึกษา", "อาชญากรรม", "ภาพยนตร์"]
+allowed_category = [
+    "การเมือง",
+    "เศรษฐกิจ",
+    "ต่างประเทศ",
+    "บันเทิง",
+    "ในประเทศ",
+    "กีฬา",
+    "ไลฟ์สไตล์",
+    "เทคโนโลยี",
+    "สังคม",
+    "คุณภาพชีวิต",
+    "การศึกษา",
+    "อาชญากรรม",
+    "ภาพยนตร์",
+]
+
 map_category = {
     'การเมือง': 'politics',
     'เศรษฐกิจ': 'economic',
@@ -124,12 +140,14 @@ def generate_user_items(out_users_filename, out_items_filename, in_users_filenam
     news_df['tags'] = news_df['tags'].apply(lambda tags: '|'.join(tags))
     news_df = news_df[news_df['category'].isin(allowed_category)]
     # news_df['category'] = news_df['category'].apply(lambda c: map_category[c])
-    news_df = news_df.groupby('category').apply(lambda s: s.sample(90, replace=False))
+    # news_df = news_df.groupby('category').apply(lambda s: s.sample(90, replace=False))
+    news_df = news_df[news_df['pubDate'] > (datetime.now() - timedelta(days=12)).isoformat()]
     news_df = news_df.drop_duplicates(['id'])
+    news_df['timestamp'] = news_df['pubDate'].apply(lambda dt: int(parse(dt).timestamp()))
     news_df.to_csv(out_items_raw_filename, index=False, encoding='utf-8')
 
-    news_dataset_df = news_df.rename(columns={'id': 'ITEM_ID', 'category': 'CATEGORY', 'tags': 'TAGS'})
-    news_dataset_df = news_dataset_df[['ITEM_ID', 'CATEGORY']]
+    news_dataset_df = news_df.rename(columns={'id': 'ITEM_ID', 'category': 'CATEGORY', 'tags': 'TAGS', 'timestamp': 'CREATION_TIMESTAMP'})
+    news_dataset_df = news_dataset_df[['ITEM_ID', 'CATEGORY', 'CREATION_TIMESTAMP']]
     news_dataset_df.to_csv(out_items_filename, index=False, encoding='utf-8')
 
     users_dataset_df = users_df[['id', 'age', 'gender']]
@@ -180,6 +198,9 @@ def generate_interactions(out_interactions_filename, users_df, news_df):
 
     print("Writing interactions to: {}".format(out_interactions_filename))
 
+    def filterDateRange(news_df, this_timestamp_dt, prev_days=8):
+        return news_df[(news_df['pubDate'] > (this_timestamp_dt - timedelta(days=prev_days)).isoformat()) & (news_df['pubDate'] <= this_timestamp_dt.isoformat())]
+
     with open(out_interactions_filename, 'w') as outfile:
         f = csv.writer(outfile)
         f.writerow(["ITEM_ID", "USER_ID", "EVENT_TYPE", "TIMESTAMP"])
@@ -210,6 +231,10 @@ def generate_interactions(out_interactions_filename, users_df, news_df):
             }
 
         while interactions < min_interactions:
+            this_timestamp = next_timestamp + random.randint(0, seconds_increment)
+            this_timestamp_dt = datetime.fromtimestamp(this_timestamp)
+            next_timestamp += seconds_increment
+
             if (time.time() > next_update_progress):
                 rate = interactions / (time.time() - start_time_progress)
                 to_go = (min_interactions - interactions) / rate
@@ -244,7 +269,7 @@ def generate_interactions(out_interactions_filename, users_df, news_df):
             else:
                 # If the user has not yet selected a first product for this category
                 # we do it according to the old logic of choosing between all products for gender
-                # Check if subset data frame is already cached for category & gender
+                # Check if subset data frame iuser_category_to_first_prod already cached for category & gender
                 news_subset_df = subsets_cache.get(category)
                 if news_subset_df is None:
                     # Select products from selected category without gender affinity or that match user's gender
@@ -252,7 +277,9 @@ def generate_interactions(out_interactions_filename, users_df, news_df):
                     # Update cache
                     subsets_cache[category] = news_subset_df
 
+            news_subset_df = filterDateRange(news_subset_df, this_timestamp_dt)
             # Pick a random product from gender filtered subset
+            # print(this_timestamp_dt.isoformat(), interactions, category, news_subset_df.shape)
             news = news_subset_df.sample().iloc[0]
 
             interaction_news_counts[news.id] += 1
@@ -265,8 +292,6 @@ def generate_interactions(out_interactions_filename, users_df, news_df):
             # interaction_news_counts[news.id] += 1
 
             # user_to_news[user['id']].add(news['id'])
-            this_timestamp = next_timestamp + random.randint(0, seconds_increment)
-            next_timestamp += seconds_increment
 
             num_interaction_sets_to_insert = 1
             newsCount = list(interaction_news_counts.values())

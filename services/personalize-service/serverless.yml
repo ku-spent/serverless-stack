@@ -64,11 +64,11 @@ resources:
 
 functions:
   processPinpointEvent:
-    handler: src/handlers/pinpointStreaming.handler
+    handler: src/handlers/pintpointInteractionStreaming.handler
     events:
       - stream:
           type: kinesis
           arn: !GetAtt PintpointKinesisDataStream.Arn
           consumer: true
-          batchSize: 5
+          batchSize: 10
           startingPosition: LATEST
