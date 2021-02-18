@@ -21,6 +21,7 @@
     "request": "^2.88.2"
   },
   "devDependencies": {
+    "@agiledigital/serverless-sns-sqs-lambda": "^0.2.1",
     "@types/aws-lambda": "^8.10.64",
     "@types/elasticsearch": "^5.0.36",
     "@types/http-aws-es": "^6.0.0",

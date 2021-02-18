@@ -9,11 +9,23 @@ plugins:
   # serverless reserve $ then use pseudo to interpolate # -> $
   - serverless-pseudo-parameters
   - serverless-plugin-typescript
+  - '@agiledigital/serverless-sns-sqs-lambda'
 
 package:
   individually: true
 
-custom: ${file(../../serverless.common.yml):custom}
+custom:
+  sns:
+    crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
+
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+  lambdaIam:
+    - Effect: Allow
+      Action:
+        - sns:*
+      Resource: ${self:custom.sns.crawlerTopicArn}
 
 provider:
   name: aws
@@ -63,8 +75,8 @@ resources:
         Name: ${self:custom.spentApp}-ExtPinpointKinesisRoleArn
 
 functions:
-  processPinpointEvent:
-    handler: src/handlers/pintpointInteractionStreaming.handler
+  streamingPersonalizeInteractions:
+    handler: src/handlers/streamingInteraction.handler
     events:
       - stream:
           type: kinesis
@@ -72,3 +84,14 @@ functions:
           consumer: true
           batchSize: 10
           startingPosition: LATEST
+  streamingPersonalizeItems:
+    handler: src/handlers/streamingItems.handler
+    events:
+      - snsSqs:
+          name: streamingPersonalizeItems # Required - choose a name prefix for the event queue
+          topicArn: ${self:custom.sns.crawlerTopicArn} # Required - SNS topic to subscribe to
+          batchSize: 10 # Optional - default value is 10
+          maxRetryCount: 2 # Optional - default value is 5
+          filterPolicy: # Optional - filter messages that are handled
+            crawlType:
+              - news

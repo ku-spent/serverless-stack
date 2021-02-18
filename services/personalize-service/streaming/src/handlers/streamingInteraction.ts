@@ -1,19 +1,18 @@
 import * as AWS from 'aws-sdk'
 
-import { Handler } from 'aws-lambda'
+import { Handler, KinesisStreamEvent, Context, KinesisStreamRecord } from 'aws-lambda'
 import { Payload } from '../types'
 import { PutEventsRequest } from 'aws-sdk/clients/personalizeevents'
+import { PERSONALIZE_TRACKING_ID } from '../config'
 
 console.log('Loading function')
-
-const TRACKING_ID = process.env.TRACKING_ID || ''
 
 const personalizedEvent = new AWS.PersonalizeEvents({ apiVersion: '2018-03-22' })
 
 const formatPayload = async (payload: string) => {
   const jsonPayload: Payload = JSON.parse(payload)
   const event: PutEventsRequest = {
-    trackingId: TRACKING_ID,
+    trackingId: PERSONALIZE_TRACKING_ID,
     userId: jsonPayload.attributes.user_id,
     sessionId: jsonPayload.session.session_id,
     eventList: [
@@ -27,7 +26,7 @@ const formatPayload = async (payload: string) => {
   return event
 }
 
-const putEventPersonalizedFromRecord = async (record: any) => {
+const putInteractionEvent = async (record: KinesisStreamRecord) => {
   const payload = Buffer.from(record.kinesis.data, 'base64').toString('ascii')
   console.log('Decoded payload:', payload)
 
@@ -36,9 +35,7 @@ const putEventPersonalizedFromRecord = async (record: any) => {
   return res
 }
 
-const pintpointInteractionStreaming: Handler = async (event, context) => {
-  const res = await Promise.all(event.Records.map((record) => putEventPersonalizedFromRecord(record)))
+export const handler: Handler = async (event: KinesisStreamEvent, context: Context) => {
+  const res = await Promise.all(event.Records.map((record) => putInteractionEvent(record)))
   return res
 }
-
-export const handler = pintpointInteractionStreaming
