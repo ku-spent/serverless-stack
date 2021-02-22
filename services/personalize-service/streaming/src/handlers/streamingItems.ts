@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk'
 
 import { Handler, Context, SQSEvent } from 'aws-lambda'
-import { ItemList } from 'aws-sdk/clients/personalizeevents'
+import PersonalizeEvents, { ItemList } from 'aws-sdk/clients/personalizeevents'
 import { PERSONALIZE_DATASET_ARN } from '../config'
 
 console.log('Loading function')
@@ -30,10 +30,10 @@ interface News {
 const putItemsEvent = async (newsList: News[]) => {
   const items: ItemList = newsList.map((news) => ({
     itemId: news.id,
-    properties: JSON.stringify({
+    properties: ({
       CATEGORY: news.category,
       CREATION_TIMESTAMP: Math.floor(Date.parse(news.pubDate) / 1000),
-    }),
+    } as any) as PersonalizeEvents.Types.ItemProperties,
   }))
   const res = await personalizedEvent.putItems({ datasetArn: PERSONALIZE_DATASET_ARN, items }).promise()
   return res
@@ -48,7 +48,9 @@ export const handler: Handler = async (event: SQSEvent, context: Context) => {
     throw new Error('message length must less or equal 10.')
   }
 
-  const newsList: News[] = messages.map((message) => JSON.parse(`message.payload`))
+  // console.log(messages)
+
+  const newsList: News[] = messages.map((message) => message.payload)
 
   const res = await putItemsEvent(newsList)
   return res

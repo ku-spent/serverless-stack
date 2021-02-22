@@ -1,0 +1,59 @@
+service: spent-service-personalize-api
+# app and org for use with dashboard.serverless.com
+# app: spent-resources
+# org: thtiiz
+
+frameworkVersion: '2'
+
+plugins:
+  - serverless-offline
+  - serverless-pseudo-parameters
+  - serverless-dotenv-plugin
+
+package:
+  individually: true
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
+
+provider:
+  name: aws
+  runtime: go1.x
+  memorySize: 128
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  tracing:
+    apiGateway: true
+    lambda: true
+  apiGateway:
+    restApiId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiId
+    restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+  environment:
+    PERSONALIZE_CAMPAIGN_ARN: ${custom:personalize.campaignARN}
+  iamRoleStatements:
+    - Sid: RetrieveRecommendationsOneCampaign
+      Effect: Allow
+      Action:
+        - 'personalize:DescribeSolution'
+        - 'personalize:DescribeCampaign'
+        - 'personalize:GetRecommendations'
+      Resource:
+        - 'arn:aws:personalize:#{AWS::Region}:#{AWS::AccountId}:solution/*'
+        - 'arn:aws:personalize:#{AWS::Region}:#{AWS::AccountId}:campaign/*'
+
+custom:
+  stage: ${file(../../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../../serverless.common.yml):custom.spentAppMapping}
+
+  personalize:
+    campaignARN: ${env:PERSONALIZE_CAMPAIGN_ARN}
+
+functions:
+  getRecommendationByUser:
+    handler: bin/getByUser
+    events:
+      - http:
+          path: /recommendations
+          method: get

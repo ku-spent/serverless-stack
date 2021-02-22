@@ -7,7 +7,7 @@ lambda_client = boto3.client('lambda')
 
 account_id = sts_client.get_caller_identity()["Account"]
 
-LAMBDA_NAME = 'spent-service-personalize-dev-processPinpointEvent'
+LAMBDA_NAME = 'spent-service-personalize-dev-streamingPersonalizeInteractions'
 KINESIS_STREAM_ARN = f'arn:aws:kinesis:ap-southeast-1:{account_id}:stream/spent-pinpoint-event'
 print(KINESIS_STREAM_ARN)
 try:
