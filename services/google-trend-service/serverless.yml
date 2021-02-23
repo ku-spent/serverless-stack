@@ -54,7 +54,7 @@ custom:
     rate: rate(1 hour)
 
   es:
-    externalIndex: 'external-trends'
+    externalIndex: 'external-trends-2'
 
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
