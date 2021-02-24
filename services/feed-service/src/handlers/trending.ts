@@ -3,7 +3,6 @@ import esb from 'elastic-builder'
 import { esSearch } from '../libs/elasticsearch'
 import commonMiddleware from '../libs/commonMiddleware'
 import AWS from 'aws-sdk'
-import { JsonWebTokenError } from 'jsonwebtoken'
 import { TREND_LAMBDA_NAME } from '../constant'
 
 const lambda = new AWS.Lambda()
@@ -47,7 +46,7 @@ const search = async (trendWithTopics: TrendWithTopics, newsSize: number) => {
     .toJSON()
 
   const res = await esSearch(requestBody)
-  return { trend, news: res.hits.hits.filter((news) => news._score > 0) }
+  return { trend, news: res.hits.hits.filter((news) => news._score > 100) }
 }
 
 const trending: Handler = async (event, context) => {

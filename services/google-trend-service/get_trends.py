@@ -52,7 +52,8 @@ def get_thairath_trends():
         trend_1 = similar_trend[0]
         trend_2 = similar_trend[1]
         larger_trend = trend_1 if len(trend_1[0]) > len(trend_2[0]) else trend_2
-        current_trends.remove(larger_trend)
+        if(larger_trend in current_trends):
+            current_trends.remove(larger_trend)
 
     trends = [trend[0] for trend in current_trends]
     trends_url = ['https://www.thairath.co.th' + trend[1] for trend in current_trends]

@@ -63,6 +63,7 @@ custom:
 functions:
   externalTrendsCrawler:
     handler: crawler.handler
+    timeout: 60
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
     events:
