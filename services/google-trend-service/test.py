@@ -1,7 +1,7 @@
-from get_trends import get_thairath_trends
+from get_trends import get_trends
 
 
-trends, source = get_thairath_trends()
+trends, source = get_trends()
 
 assert(type(source) == str)
 assert(type(trends) == list)

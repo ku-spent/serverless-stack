@@ -27,7 +27,8 @@ const search = async (trendWithTopics: TrendWithTopics, newsSize: number) => {
         .query(
           esb
             .boolQuery()
-            .must(esb.termsQuery().values(topics).field('category'))
+            .should(esb.termsQuery().values(topics).field('category'))
+            .should(esb.termsQuery().values(topics).field('tags'))
             .must(esb.multiMatchQuery().query(trend).fields(['title', 'summary', 'tags']).operator('or'))
             .should(
               esb.multiMatchQuery().query(trend).fields(['title', 'summary']).operator('or').type('phrase').boost(4)
@@ -42,11 +43,12 @@ const search = async (trendWithTopics: TrendWithTopics, newsSize: number) => {
         ])
         .boostMode('multiply')
     )
+    .minScore(100)
     .size(newsSize)
     .toJSON()
 
   const res = await esSearch(requestBody)
-  return { trend, news: res.hits.hits.filter((news) => news._score > 100) }
+  return { trend, news: res.hits.hits }
 }
 
 const trending: Handler = async (event, context) => {
@@ -62,10 +64,10 @@ const trending: Handler = async (event, context) => {
 
     const response: TRENDING_RESPONSE = JSON.parse(data.Payload.toString())
     const { trends } = response
-    const top_5_trend_with_news = await Promise.all(
-      trends.slice(from, from + size).map((trend) => search(trend, newsSize))
-    )
-    const without_empty_news = top_5_trend_with_news.filter((trendingTopic) => trendingTopic.news.length > 0)
+    const top_5_trend_with_news = await Promise.all(trends.map((trend) => search(trend, newsSize)))
+    const without_empty_news = top_5_trend_with_news
+      .filter((trendingTopic) => trendingTopic.news.length > 0)
+      .slice(from, from + size)
 
     const body = { trends: trends.map(({ trend }) => trend), feeds: without_empty_news }
 

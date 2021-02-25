@@ -10,8 +10,8 @@ whitelist_topic = [
 ]
 
 
-def get_thairath_trends():
-    source = 'thairath'
+def get_trends():
+    source = 'thairath, google'
 
     def similar(a, b):
         return SequenceMatcher(None, a, b).ratio()
@@ -32,28 +32,6 @@ def get_thairath_trends():
     similar_threshold = .8
     exclude_trends = ['วันนี้', 'รีไฟแนนซ์', 'ราคา', 'โปรแกรมฟุตบอล', 'ตารางคะแนน', 'ไทยรัฐ', 'thairath', 'ข่าว', 'ดวง', 'ตรวจหวย']
     current_trends = list(filter(lambda x: all([exclude not in x[0].lower() for exclude in exclude_trends]), current_trends))
-
-    # find similar trends
-    for i in range(len(current_trends)):
-        for j in range(i + 1, len(current_trends)):
-            trend_1 = current_trends[i]
-            trend_2 = current_trends[j]
-
-            sim_val = similar(trend_1[0], trend_2[0])
-            if(sim_val > similar_threshold):
-                similar_trends.append((trend_1, trend_2))
-            elif(trend_1[0] in trend_2[0]):
-                similar_trends.append((trend_1, trend_2))
-            elif(trend_2[0] in trend_1[0]):
-                similar_trends.append((trend_1, trend_2))
-
-    for similar_trend in similar_trends:
-        # remove larger trend length
-        trend_1 = similar_trend[0]
-        trend_2 = similar_trend[1]
-        larger_trend = trend_1 if len(trend_1[0]) > len(trend_2[0]) else trend_2
-        if(larger_trend in current_trends):
-            current_trends.remove(larger_trend)
 
     trends = [trend[0] for trend in current_trends]
     trends_url = ['https://www.thairath.co.th' + trend[1] for trend in current_trends]
@@ -84,4 +62,36 @@ def get_thairath_trends():
         if(len(topics) > 0):
             trends_with_topics.append({'trend': trend, 'topics': topics})
 
-    return trends_with_topics, source
+    raw_html = get_raw_html('https://trends.google.co.th/trends/trendingsearches/daily/rss?geo=TH')
+    soup = BeautifulSoup(raw_html, 'xml')
+
+    items = soup.findAll('item')
+    google_trends = [{'trend': item.find('title').string, 'topics': item.find('description').get_text().split(', ')} for item in soup.findAll('item')]
+
+    all_trends = google_trends + trends_with_topics
+
+    # find similar trends
+    for i in range(len(all_trends)):
+        for j in range(i + 1, len(all_trends)):
+            trend_1 = all_trends[i]['trend']
+            trend_2 = all_trends[j]['trend']
+
+            sim_val = similar(trend_1, trend_2)
+            if(sim_val > similar_threshold):
+                similar_trends.append((trend_1, trend_2))
+            elif(trend_1 in trend_2):
+                similar_trends.append((trend_1, trend_2))
+            elif(trend_2 in trend_1):
+                similar_trends.append((trend_1, trend_2))
+    for similar_trend in similar_trends:
+        # remove larger trend length
+        trend_1 = similar_trend[0]
+        trend_2 = similar_trend[1]
+        to_remove_trend = trend_1 if len(trend_1) > len(trend_2) else trend_2
+        # remove one similar trend
+        for index, item in enumerate(all_trends):
+            if(item['trend'] == to_remove_trend):
+                del all_trends[index]
+                break
+
+    return all_trends, source

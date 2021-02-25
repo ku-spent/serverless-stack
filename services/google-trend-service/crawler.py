@@ -1,5 +1,5 @@
 import datetime
-from get_trends import get_thairath_trends
+from get_trends import get_trends
 from json import dumps
 from logger import logger
 from helper import es_client
@@ -16,7 +16,7 @@ def handler(event, context):
         pass
 
     try:
-        trends, source = get_thairath_trends()
+        trends, source = get_trends()
         now = datetime.datetime.utcnow().isoformat() + '+00:00'
         payload = {'source': source, 'trends': trends, 'createdAt': now}
 
