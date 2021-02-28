@@ -13,11 +13,14 @@ package:
   individually: true
   exclude:
     - node_modules/**
+    - seleniumLayer/**
+    - .serverless/**
+    - __pycache__/**
 
 provider:
   name: aws
   runtime: python3.8
-  memorySize: 128
+  memorySize: 256
   stage: ${opt:stage, 'dev'}
   versionFunctions: false
   region: ap-southeast-1
@@ -50,7 +53,7 @@ custom:
     dockerizePip: non-linux
 
   crawConfig:
-    timeout: 30
+    timeout: 60
     rate: rate(1 hour)
 
   es:
@@ -66,6 +69,8 @@ functions:
     timeout: 60
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
+      # - !ImportValue ${self:custom.spentApp}-ExtSeleniumLambdaLayer
+      # - !ImportValue ${self:custom.spentApp}-ExtChromedriverLambdaLayer
     events:
       - schedule:
           rate: ${self:custom.crawConfig.rate}

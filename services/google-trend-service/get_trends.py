@@ -1,13 +1,51 @@
+from contextlib import closing
 import json
 from difflib import SequenceMatcher
+
 from helper import get_raw_html
 from bs4 import BeautifulSoup
+import json
+
+# from selenium import webdriver
+# from selenium.webdriver.chrome.options import Options
+# import chromedriver_binary
+
+import threading
+
 
 whitelist_topic = [
     'การศึกษา', 'การเมือง', 'กีฬา', 'คุณภาพชีวิต', 'ต่างประเทศ',
     'บันเทิง', 'ภาพยนตร์', 'สังคม', 'อาชญากรรม', 'เทคโนโลยี',
     'เศรษฐกิจ', 'ในประเทศ', 'ไลฟ์สไตล์'
 ]
+
+trends_with_topics = []
+
+
+def crawl_thairath_trends_topics(trend, trend_url):
+    global trends_with_topics
+    print(f'crawl thairath {trend}')
+    raw_html = get_raw_html(trend_url)
+    soup = BeautifulSoup(raw_html, 'html.parser')
+    json_data = json.loads(soup.find('script', id='__NEXT_DATA__').string)
+    json_data = json_data['props']['initialState']['common']['data'].get('items')
+
+    if(json_data is None):
+        return
+
+    items = {}
+    cur_depth = 0
+    while not isinstance(items, list) and cur_depth < 5:
+        key = list(json_data.keys())[0]
+        items = json_data[key]
+        json_data = items
+        cur_depth += 1
+
+    topics = [item['topic'] if item['topic'] in whitelist_topic else item['section'] for item in items]
+    topics = [topic for topic in topics if topic in whitelist_topic]
+    topics = list(set(topics))
+    if(len(topics) > 0):
+        trends_with_topics.append({'trend': trend, 'topics': topics})
 
 
 def get_trends():
@@ -16,12 +54,14 @@ def get_trends():
     def similar(a, b):
         return SequenceMatcher(None, a, b).ratio()
 
+    print('crawling thairath trending')
     raw_html = get_raw_html('https://www.thairath.co.th/tags/trending')
     soup = BeautifulSoup(raw_html, 'html.parser')
     tags = soup.find('main').find('div').find_all('div', recursive=False)[2].find_all('div')[5].find_all('a')
     trends = [(tag.get_text(), tag['href']) for tag in tags]
 
-    raw_html = get_raw_html('https://www.thairath.co.th/home').decode("utf-8")
+    print('crawling thairath home')
+    raw_html = get_raw_html('https://www.thairath.co.th/home')
     soup = BeautifulSoup(raw_html, 'html.parser')
     now_trends = [(elem.get_text(), elem['href']) for elem in soup.find('div', id="section5").find_all('a')]
 
@@ -33,40 +73,38 @@ def get_trends():
     exclude_trends = ['วันนี้', 'รีไฟแนนซ์', 'ราคา', 'โปรแกรมฟุตบอล', 'ตารางคะแนน', 'ไทยรัฐ', 'thairath', 'ข่าว', 'ดวง', 'ตรวจหวย']
     current_trends = list(filter(lambda x: all([exclude not in x[0].lower() for exclude in exclude_trends]), current_trends))
 
+    print('curtrends', current_trends)
+
     trends = [trend[0] for trend in current_trends]
     trends_url = ['https://www.thairath.co.th' + trend[1] for trend in current_trends]
 
-    trends_with_topics = []
+    threads = []
+
     for i in range(len(trends)):
-        trend = trends[i]
-        trend_url = trends_url[i]
-        raw_html = get_raw_html(trend_url)
-        soup = BeautifulSoup(raw_html, 'html.parser')
-        json_data = json.loads(soup.find('script', id='__NEXT_DATA__').string)
-        json_data = json_data['props']['initialState']['common']['data'].get('items')
+        thread = threading.Thread(target=crawl_thairath_trends_topics, args=(trends[i], trends_url[i]))
+        thread.start()
+        threads.append(thread)
 
-        if(json_data is None):
-            continue
+    for thread in threads:
+        thread.join()
 
-        items = {}
-        cur_depth = 0
-        while not isinstance(items, list) and cur_depth < 5:
-            key = list(json_data.keys())[0]
-            items = json_data[key]
-            json_data = items
-            cur_depth += 1
-
-        topics = [item['topic'] if item['topic'] in whitelist_topic else item['section'] for item in items]
-        topics = [topic for topic in topics if topic in whitelist_topic]
-        topics = list(set(topics))
-        if(len(topics) > 0):
-            trends_with_topics.append({'trend': trend, 'topics': topics})
-
-    raw_html = get_raw_html('https://trends.google.co.th/trends/trendingsearches/daily/rss?geo=TH')
+    print('crawling google trends')
+    # options = Options()
+    # # options.binary_location = '/opt/headless-chromium'
+    # options.add_argument('--headless')
+    # options.add_argument('--no-sandbox')
+    # options.add_argument('--single-process')
+    # options.add_argument('--disable-dev-shm-usage')
+    # driver = webdriver.Chrome('/opt/chromedriver', chrome_options=options)
+    # driver.get('https://trends.google.co.th/trends/trendingsearches/daily/rss?geo=TH')
+    # raw_html = driver.page_source
+    # driver.close()
+    # driver.quit()
+    raw_html = get_raw_html('https://trends.google.co.th/trends/trendingsearches/daily/rss?geo=TH', use_proxy=True)
     soup = BeautifulSoup(raw_html, 'xml')
 
-    items = soup.findAll('item')
     google_trends = [{'trend': item.find('title').string, 'topics': item.find('description').get_text().split(', ')} for item in soup.findAll('item')]
+    print(google_trends)
 
     all_trends = google_trends + trends_with_topics
 
