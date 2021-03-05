@@ -18,7 +18,7 @@ def test(url):
     return None, None
 
 # ES_PUBLISH=True BYPASS_CACHE=True python3 test.py
-run({'source': SOURCE_SANOOK}, {})
+run({'source': SOURCE_BEARTAI}, {})
 # run({'source': SOURCE_VOICETV}, {})
 # run({'source': SOURCE_MATICHON}, {})
 # run({'source': SOURCE_BEARTAI}, {})

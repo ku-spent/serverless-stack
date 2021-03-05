@@ -129,6 +129,7 @@ functions:
 
   trending:
     handler: src/handlers/trending.handler
+    timeout: 10
     events:
       - http:
           method: GET

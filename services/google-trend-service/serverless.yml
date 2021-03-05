@@ -69,8 +69,6 @@ functions:
     timeout: 60
     layers:
       - { Ref: PythonRequirementsLambdaLayer }
-      # - !ImportValue ${self:custom.spentApp}-ExtSeleniumLambdaLayer
-      # - !ImportValue ${self:custom.spentApp}-ExtChromedriverLambdaLayer
     events:
       - schedule:
           rate: ${self:custom.crawConfig.rate}

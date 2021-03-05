@@ -44,6 +44,7 @@ class BeartaiHandler(BaseHandler):
             data['pubDate'] = local_datetime_to_utc(datetime.strptime(soup.find('time')['datetime'], '%Y-%m-%dT%H:%M:%S+07:00'))
             content = content_tag.find(class_='entry-content')
             deleteSoupElement(content.find('noscript'))
+            deleteSoupElement(content.find(class_='inline-post clearfix'))
             deleteSoupElement(content.find(class_='yarpp-related'))
             data['raw_html_content'] = str(content)
             return data
