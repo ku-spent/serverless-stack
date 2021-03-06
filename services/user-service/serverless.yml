@@ -1,38 +1,26 @@
-service: spent-service-user
+service: spent-service-user-api
+# app and org for use with dashboard.serverless.com
+# app: spent-resources
+# org: thtiiz
 
 frameworkVersion: '2'
 
 plugins:
-  # serverless reserve $ then use pseudo to interpolate # -> $
-  - serverless-pseudo-parameters
-  - serverless-plugin-typescript
   - serverless-offline
-  - serverless-iam-roles-per-function
-  # - serverless-dotenv-plugin
-  - serverless-layers
-  - serverless-deployment-bucket
+  - serverless-pseudo-parameters
+  - serverless-dotenv-plugin
 
 package:
   individually: true
-
-custom:
-  stage: ${file(../../serverless.common.yml):custom.stage}
-  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
-  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
-  userTable:
-    name: ${file(../../serverless.common.yml):custom.dynamodb.userTable.name}
-    arn: ${file(../../serverless.common.yml):custom.dynamodb.userTable.arn}
-
-  serverless-layers:
-    functions: # optional
-      - get
-      - list
-    dependenciesPath: ./package.json
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
 
 provider:
   name: aws
-  runtime: nodejs12.x
-  memorySize: 256
+  runtime: go1.x
+  memorySize: 128
   stage: ${opt:stage, 'dev'}
   region: ap-southeast-1
   tracing:
@@ -42,40 +30,26 @@ provider:
     restApiId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiId
     restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
   environment:
-    USER_TABLE_NAME: ${self:custom.userTable.name}
-  deploymentBucket:
-    name: ${self:custom.spentApp}-service-user
-    serverSideEncryption: AES256
+    TABLE_HISTORY: ${custom:dynamodb.tableHistory}
   iamRoleStatements:
-    - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
       Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-        - dynamodb:DescribeTable
-      Resource: ${self:custom.userTable.arn}
+        - 'dynamodb:Scan'
+      Resource:
+        - '*'
+
+custom:
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+
+  dynamodb:
+    tableHistory: ${env:TABLE_HISTORY}
 
 functions:
-  get:
-    handler: src/handlers/get.handler
+  getHistoryByUser:
+    handler: bin/getByUser
     events:
       - http:
-          method: GET
-          path: users/{id}
-          authorizer: aws_iam
-          request:
-            parameters:
-              paths:
-                id: true
-
-  list:
-    handler: src/handlers/list.handler
-    events:
-      - http:
-          method: GET
-          path: users
-          authorizer: aws_iam
+          path: /histories
+          method: get
