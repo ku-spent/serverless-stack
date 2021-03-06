@@ -34,8 +34,8 @@ func(r *PersonalizeRepository) GetByUser(ctx context.Context, userID string) (*R
 	fmt.Printf("%+v\n", input)
 
 	output, err := r.Client.GetRecommendations(ctx, input)
-	fmt.Printf("%+v\n", output)
-	fmt.Printf("%+v\n", err)
+	fmt.Printf("output %+v\n", output)
+	fmt.Printf("err %+v\n", err)
 	if err != nil {
 		return nil, err
 	}
