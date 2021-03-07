@@ -9,6 +9,7 @@ import (
 
 type repository interface {
 	GetHistoriesByUserID(ctx context.Context, userID string, pagination Pagination) (*[]History, error)
+	GetBlocksByUserID(ctx context.Context, userID string, pagination Pagination) (*[]Block, error)
 }
 
 // Usecase of user
@@ -26,11 +27,12 @@ func (u *Usecase) GetLatestHistoriesByUserID(ctx context.Context, userID string,
 	return histories, nil
 }
 
-// // GetLatestBlocksByUserID is function to get blocks by user id
-// func (u *Usecase) GetLatestBlocksByUserID(ctx context.Context, userID string,  limit int) (*[]Block, error) {
-// 	user, err := u.Repository.GetByUser(ctx, userID)
-// 	if err != nil {
-// 		return nil, errors.Wrap(err, "error get user by user")
-// 	}
-// 	return user, nil
-// }
+// GetLatestBlocksByUserID is function to get blocks by user id
+func (u *Usecase) GetLatestBlocksByUserID(ctx context.Context, userID string, limit int32) (*[]Block, error) {
+	blocks, err := u.Repository.GetBlocksByUserID(ctx, userID, Pagination{Limit: limit})
+	if err != nil {
+		return nil, errors.Wrap(err, "error get blocks by user")
+	}
+	fmt.Printf("blocks length %v\n", len(*blocks))
+	return blocks, nil
+}

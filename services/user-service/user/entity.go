@@ -17,10 +17,10 @@ type History struct {
 
 // Block entity
 type Block struct {
-	Name string
-	Type string
-	CreatedAt string
-	UpdateAt string
+	Name string							`json:"name"`
+	Type string							`json:"type"`
+	CreatedAt string				`json:"createdAt"`
+	UpdateAt string					`json:"updatedAt"`
 }
 
 // Pagination entity

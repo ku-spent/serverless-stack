@@ -30,7 +30,8 @@ provider:
     restApiId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiId
     restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
   environment:
-    TABLE_HISTORY: ${custom:dynamodb.tableHistory}
+    DYNAMODB_TABLE_HISTORY: ${custom:dynamodb.tableHistory}
+    DYNAMODB_TABLE_BLOCK: ${custom:dynamodb.tableBlock}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -45,7 +46,8 @@ custom:
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
 
   dynamodb:
-    tableHistory: ${env:TABLE_HISTORY}
+    tableHistory: ${env:DYNAMODB_TABLE_HISTORY}
+    tableBlock: ${env:DYNAMODB_TABLE_BLOCK}
 
 functions:
   users:

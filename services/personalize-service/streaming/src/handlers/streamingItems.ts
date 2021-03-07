@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk'
 
 import { Handler, Context, SQSEvent } from 'aws-lambda'
-import PersonalizeEvents, { ItemList } from 'aws-sdk/clients/personalizeevents'
+import PersonalizeEvents, { ItemList, PutItemsRequest } from 'aws-sdk/clients/personalizeevents'
 import { PERSONALIZE_DATASET_ITEM_ARN } from '../config'
 
 console.log('Loading function')
@@ -35,7 +35,10 @@ const putItemsEvent = async (newsList: News[]) => {
       creationTimestamp: Math.floor(Date.parse(news.pubDate) / 1000),
     } as any) as PersonalizeEvents.Types.ItemProperties,
   }))
-  const res = await personalizedEvent.putItems({ datasetArn: PERSONALIZE_DATASET_ITEM_ARN, items }).promise()
+
+  const event: PutItemsRequest = { datasetArn: PERSONALIZE_DATASET_ITEM_ARN, items }
+  console.log(event)
+  const res = await personalizedEvent.putItems(event).promise()
   return res
 }
 
@@ -53,5 +56,7 @@ export const handler: Handler = async (event: SQSEvent, context: Context) => {
   const newsList: News[] = messages.map((message) => message.payload)
 
   const res = await putItemsEvent(newsList)
+  console.log(res)
+  console.log('Completed')
   return res
 }
