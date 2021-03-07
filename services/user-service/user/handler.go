@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gin-gonic/gin"
-	"github.com/ku-spent/serverless-stack/personalize-service/api/pkg/helpers"
+	"github.com/ku-spent/serverless-stack/user-service/api/pkg/helpers"
 )
 
 // UserHandler -
@@ -53,17 +53,9 @@ func NewUserHandler(r *gin.Engine) {
 // GetLatestHistoriesByUserID -
 func (h *UserHandler) GetLatestHistoriesByUserID(c *gin.Context) {
 	userID := c.Param("id")
-	limit := c.Query("limit")
+	limit := helpers.ParseStringToInt32(c.Query("limit"), 10) 
 
-	// parse to int32
-	parsedLimit, err := strconv.Atoi(limit)
-	if err != nil {
-		parsedLimit = 10
-	}
-
-	fmt.Printf("query userID %v, limit %v\n", userID, limit)
-
-	data, err := h.usecase.GetLatestHistoriesByUserID(c.Request.Context(), userID, int32(parsedLimit))
+	data, err := h.usecase.GetLatestHistoriesByUserID(c.Request.Context(), userID, limit)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)

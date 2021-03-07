@@ -24,18 +24,17 @@ func NewPersonalizeRepository(client *personalizeruntime.Client, campaignArn str
 }
 
 // GetByUser personalize recommendation by userID
-func(r *PersonalizeRepository) GetByUser(ctx context.Context, userID string) (*Recommendation, error) {
+func(r *PersonalizeRepository) GetByUser(ctx context.Context, userID string, pagination Pagination) (*Recommendation, error) {
 	input := &personalizeruntime.GetRecommendationsInput{
 		UserId: &userID,
 		CampaignArn: &r.CampaignArn,
 		// FilterArn: &r.FilterArn,
-		NumResults: 20,
+		NumResults: pagination.Limit,
 	}
 	fmt.Printf("%+v\n", input)
 
 	output, err := r.Client.GetRecommendations(ctx, input)
-	fmt.Printf("output %+v\n", output)
-	fmt.Printf("err %+v\n", err)
+	
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ku-spent/serverless-stack/user-service/api/pkg/router"
+	"github.com/ku-spent/serverless-stack/personalize-service/api/pkg/router"
 )
 
 func main() {

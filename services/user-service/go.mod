@@ -1,4 +1,4 @@
-module github.com/ku-spent/serverless-stack/personalize-service/api
+module github.com/ku-spent/serverless-stack/user-service/api
 
 go 1.16
 

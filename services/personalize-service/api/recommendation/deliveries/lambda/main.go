@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
-	"github.com/ku-spent/serverless-stack/user-service/api/pkg/router"
+	"github.com/ku-spent/serverless-stack/personalize-service/api/pkg/router"
 )
 
 var ginLambda *ginadapter.GinLambda

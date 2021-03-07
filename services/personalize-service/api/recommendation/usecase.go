@@ -7,7 +7,7 @@ import (
 )
 
 type repository interface {
-	GetByUser(ctx context.Context, userID string) (*Recommendation, error)
+	GetByUser(ctx context.Context, userID string, pagination Pagination) (*Recommendation, error)
 }
 
 // Usecase of recommendation
@@ -16,8 +16,8 @@ type Usecase struct {
 }
 
 // GetByUser is get recommendation for User by user id
-func (u *Usecase) GetByUser(ctx context.Context, userID string) (*Recommendation, error) {
-	recommendation, err := u.Repository.GetByUser(ctx, userID)
+func (u *Usecase) GetByUser(ctx context.Context, userID string, limit int32) (*Recommendation, error) {
+	recommendation, err := u.Repository.GetByUser(ctx, userID,  Pagination{Limit: limit})
 	if err != nil {
 		return nil, errors.Wrap(err, "error get recommendation by user")
 	}
