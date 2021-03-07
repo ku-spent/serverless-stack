@@ -20,6 +20,7 @@ custom:
   personalize:
     trackingID: ${env:PERSONALIZE_TRACKING_ID}
     datasetARN: ${env:PERSONALIZE_DATASET_ARN}
+    datasetItemARN: ${env:PERSONALIZE_DATASET_ITEM_ARN}
 
   sns:
     crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
@@ -37,6 +38,7 @@ provider:
   environment:
     PERSONALIZE_TRACKING_ID: ${custom:personalize.trackingID}
     PERSONALIZE_DATASET_ARN: ${custom:personalize.datasetARN}
+    PERSONALIZE_DATASET_ITEM_ARN: ${custom:personalize.datasetItemARN}
   iamRoleStatements:
     - Effect: Allow
       Action:

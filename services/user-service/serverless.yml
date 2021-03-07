@@ -35,6 +35,7 @@ provider:
     - Effect: Allow
       Action:
         - 'dynamodb:Scan'
+        - 'dynamodb:Query'
       Resource:
         - '*'
 
@@ -47,9 +48,9 @@ custom:
     tableHistory: ${env:TABLE_HISTORY}
 
 functions:
-  getHistoryByUser:
-    handler: bin/getByUser
+  users:
+    handler: bin/users
     events:
       - http:
-          path: /histories
-          method: get
+          path: /users/{proxy+}
+          method: ANY

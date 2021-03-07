@@ -1,3 +1,5 @@
 export const PERSONALIZE_TRACKING_ID = process.env.PERSONALIZE_TRACKING_ID || ''
 
 export const PERSONALIZE_DATASET_ARN = process.env.PERSONALIZE_DATASET_ARN || ''
+
+export const PERSONALIZE_DATASET_ITEM_ARN = process.env.PERSONALIZE_DATASET_ITEM_ARN || ''

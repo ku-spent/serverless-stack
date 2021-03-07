@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -21,6 +22,7 @@ func (u *Usecase) GetLatestHistoriesByUserID(ctx context.Context, userID string,
 	if err != nil {
 		return nil, errors.Wrap(err, "error get histories by user")
 	}
+	fmt.Printf("histories length %v\n", len(*histories))
 	return histories, nil
 }
 

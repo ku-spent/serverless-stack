@@ -8,11 +8,11 @@ type User struct {
 
 // History entity
 type History struct {
-	NewsID string
-	NewsTitle string
-	Status string
-	CreatedAt string
-	UpdateAt string
+	NewsID string						`json:"newsId"`
+	NewsTitle string				`json:"newsTitle"`
+	Status string						`json:"status"`
+	CreatedAt string				`json:"createdAt"`
+	UpdateAt string					`json:"updatedAt"`
 }
 
 // Block entity
