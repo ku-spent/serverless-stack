@@ -31,6 +31,7 @@ provider:
     restApiRootResourceId: !ImportValue ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
   environment:
     PERSONALIZE_CAMPAIGN_ARN: ${custom:personalize.campaignARN}
+    PERSONALIZE_FILTER_ARN: ${custom:personalize.filterARN}
   iamRoleStatements:
     - Sid: RetrieveRecommendationsOneCampaign
       Effect: Allow
@@ -41,6 +42,7 @@ provider:
       Resource:
         - 'arn:aws:personalize:#{AWS::Region}:#{AWS::AccountId}:solution/*'
         - 'arn:aws:personalize:#{AWS::Region}:#{AWS::AccountId}:campaign/*'
+        - 'arn:aws:personalize:#{AWS::Region}:#{AWS::AccountId}:filter/*'
 
 custom:
   stage: ${file(../../../serverless.common.yml):custom.stage}
@@ -49,11 +51,12 @@ custom:
 
   personalize:
     campaignARN: ${env:PERSONALIZE_CAMPAIGN_ARN}
+    filterARN: ${env:PERSONALIZE_FILTER_ARN}
 
 functions:
   getRecommendationByUser:
     handler: bin/recommendation
     events:
       - http:
-          path: /recommendations/{proxy+}
+          path: /{proxy+}
           method: ANY

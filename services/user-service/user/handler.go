@@ -58,7 +58,7 @@ func (h *UserHandler) GetLatestHistoriesByUserID(c *gin.Context) {
 	data, err := h.usecase.GetLatestHistoriesByUserID(c.Request.Context(), userID, limit)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *UserHandler) GetLatestBlocksByUserID(c *gin.Context) {
 	data, err := h.usecase.GetLatestBlocksByUserID(c.Request.Context(), userID, int32(parsedLimit))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
