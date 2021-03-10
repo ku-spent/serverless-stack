@@ -58,8 +58,12 @@ func JoinSliceOfStruct(list []interface{},  cb func (e interface{}) string) []st
 
 // FormatSliceToPersonalizeFilter -
 func FormatSliceToPersonalizeFilter(strList []string) string {
+	if len(strList) == 0 {
+		return "\"\""
+	}
+
 	// escape blackslash double quote => \"
 	bdq := "\\\""
 
-	return bdq + strings.Join(strList, bdq + "," + bdq) +bdq
+	return "\"" + strings.Join(strList, bdq + "," + bdq) + "\""
 }

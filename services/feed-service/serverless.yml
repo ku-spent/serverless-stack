@@ -95,12 +95,12 @@ functions:
         Resource:
           - ${self:custom.userPoolArn}
 
-  relatedNews:
-    handler: src/handlers/related.handler
+  similarNews:
+    handler: src/handlers/similar.handler
     events:
       - http:
           method: GET
-          path: /news/related
+          path: /news/similar
           authorizer: ${self:custom.authorizer}
 
   news:

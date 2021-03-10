@@ -60,7 +60,7 @@ func (u *Usecase) GetRecommendationByUser(ctx context.Context, userID string, li
 		Categories: blockCategories,
 	}
 
-	recommendation, err := u.PersonalizeRepository.GetRecommendationByUser(ctx, userID, personalizeFilter, Pagination{Limit: limit})
+	recommendation, err := u.PersonalizeRepository.GetRecommendationByUser(ctx, userID, personalizeFilter, Pagination{Limit: 30})
 	if err != nil {
 		return nil, errors.Wrap(err, "error get recommendation by user")
 	}

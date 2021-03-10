@@ -7,6 +7,8 @@ import { PERSONALIZE_TRACKING_ID } from '../config'
 
 console.log('Loading function')
 
+const allow_interaction = ['news_viewed', 'news_bookmarked', 'news_shared', 'news_liked']
+
 const personalizedEvent = new AWS.PersonalizeEvents({ apiVersion: '2018-03-22' })
 
 const formatPayload = async (payload: Payload) => {
@@ -23,17 +25,19 @@ const formatPayload = async (payload: Payload) => {
       },
     ],
   }
-  console.log(event)
+  console.log(JSON.stringify(event))
   return event
 }
 
 const putInteractionEvent = async (record: KinesisStreamRecord) => {
-  const payload = Buffer.from(record.kinesis.data, 'base64').toString('ascii')
+  const payload = Buffer.from(record.kinesis.data, 'base64').toString('utf-8')
   console.log('Decoded payload:', payload)
+
+  // const parsedUnicodeJson = utf8.encode(payload)
 
   const jsonPayload: Payload = JSON.parse(payload)
 
-  if (jsonPayload.event_type === '_test.event_stream') {
+  if (!allow_interaction.includes(jsonPayload.event_type)) {
     return null
   }
 

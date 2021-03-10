@@ -4,7 +4,7 @@ import { ES_INDEX } from '../constant'
 import commonMiddleware from '../libs/commonMiddleware'
 import { esSearch } from '../libs/elasticsearch'
 
-const related: Handler = async (event, context) => {
+const similar: Handler = async (event, context) => {
   const { from = 0, size = 5, _id } = event?.queryStringParameters
 
   const searchDoc = { _index: ES_INDEX, _id }
@@ -47,4 +47,4 @@ const related: Handler = async (event, context) => {
   }
 }
 
-export const handler = commonMiddleware(related)
+export const handler = commonMiddleware(similar)

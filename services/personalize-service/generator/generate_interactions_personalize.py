@@ -146,8 +146,8 @@ def generate_user_items(out_users_filename, out_items_filename, in_users_filenam
     news_df['timestamp'] = news_df['pubDate'].apply(lambda dt: int(parse(dt).timestamp()))
     news_df.to_csv(out_items_raw_filename, index=False, encoding='utf-8')
 
-    news_dataset_df = news_df.rename(columns={'id': 'ITEM_ID', 'category': 'CATEGORY', 'tags': 'TAGS', 'timestamp': 'CREATION_TIMESTAMP'})
-    news_dataset_df = news_dataset_df[['ITEM_ID', 'CATEGORY', 'CREATION_TIMESTAMP']]
+    news_dataset_df = news_df.rename(columns={'id': 'ITEM_ID', 'category': 'CATEGORY', 'tags': 'TAGS', 'timestamp': 'CREATION_TIMESTAMP', 'source': 'SOURCE'})
+    news_dataset_df = news_dataset_df[['ITEM_ID', 'CATEGORY', 'CREATION_TIMESTAMP', 'TAGS', 'SOURCE']]
     news_dataset_df.to_csv(out_items_filename, index=False, encoding='utf-8')
 
     users_dataset_df = users_df[['id', 'age', 'gender']]

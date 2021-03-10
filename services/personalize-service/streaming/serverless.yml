@@ -25,6 +25,9 @@ custom:
   sns:
     crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
 
+  serverless-layers:
+    dependenciesPath: ./package.json
+
   stage: ${file(../../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../../serverless.common.yml):custom.spentAppMapping}
@@ -95,7 +98,8 @@ functions:
           type: kinesis
           arn: !GetAtt PintpointKinesisDataStream.Arn
           consumer: true
-          batchSize: 10
+          batchSize: 5
+          batchWindow: 3
           startingPosition: LATEST
           enabled: true
   streamingPersonalizeItems:
