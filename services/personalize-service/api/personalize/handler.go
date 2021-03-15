@@ -1,4 +1,4 @@
-package recommendation
+package personalize
 
 import (
 	"context"
@@ -48,7 +48,8 @@ func NewPersonalizeHandler(r *gin.Engine, config configs.ServerConfig) {
 	}
 	
 	// r.GET("/test", handler.Test)
-	r.GET("/recommendations", handler.GetRecommendationByUser)
+	basePath := "/personalize"
+	r.GET(basePath + "/recommendations", handler.GetRecommendationByUser)
 }
 
 // GetRecommendationByUser -

@@ -14,10 +14,6 @@ const news: Handler = async (event, context) => {
     filterTags,
   } = event?.queryStringParameters
 
-  // const filterTags: string[] = []
-  // const filterSources: string[] = ['มติชน']
-  // const filterCategories: string[] = ['การเมือง']
-
   let filterQuery = boolQuery().must(query ? matchQuery(queryField, query) : matchAllQuery())
   const filterObj = {
     category: filterCategories,

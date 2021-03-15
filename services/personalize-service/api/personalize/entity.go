@@ -1,4 +1,4 @@
-package recommendation
+package personalize
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/personalizeruntime/types"

@@ -58,5 +58,5 @@ functions:
     handler: bin/recommendation
     events:
       - http:
-          path: /{proxy+}
+          path: /personalize/{proxy+}
           method: ANY
