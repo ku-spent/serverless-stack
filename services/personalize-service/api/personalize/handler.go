@@ -28,9 +28,11 @@ func Init(c configs.ServerConfig) (Usecase, error) {
 	client := personalizeruntime.NewFromConfig(cfg)
 	personalizeRepository := NewPersonalizeRepository(client, c.PersonalizeConfig.CampaignArn, c.PersonalizeConfig.FilterArn)
 	userRepository := NewUserRepository(c.ExtUserServiceConfig.Endpoint)
+	newsRepository := NewNewsRepository(c.ExtNewsServiceConfig.Endpoint)
 	usecase := Usecase{
 		PersonalizeRepository: personalizeRepository,
 		UserRepository: userRepository,
+		NewsRepository: newsRepository,
 	}
 	return usecase, nil
 }
@@ -50,17 +52,18 @@ func NewPersonalizeHandler(r *gin.Engine, config configs.ServerConfig) {
 	// r.GET("/test", handler.Test)
 	basePath := "/personalize"
 	r.GET(basePath + "/recommendations", handler.GetRecommendationByUser)
+	r.GET(basePath + "/latest", handler.GetLatestNewsByUser)
 }
 
 // GetRecommendationByUser -
 func (h *PersonalizeHandler) GetRecommendationByUser(c *gin.Context) {
 	userID := c.Query("id")
-	limit := helpers.ParseStringToInt32(c.Query("limit"), 20) 
+	size := helpers.ParseStringToInt32(c.Query("size"), 20) 
 
 
-	fmt.Printf("query userID %v, limit %v\n", userID, limit)
+	fmt.Printf("query userID %v, size %v\n", userID, size)
 
-	data, err := h.usecase.GetRecommendationByUser(c.Request.Context(), userID, limit)
+	data, err := h.usecase.GetRecommendationByUser(c.Request.Context(), userID, size)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
@@ -68,4 +71,23 @@ func (h *PersonalizeHandler) GetRecommendationByUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": data})
+}
+
+// GetLatestNewsByUser -
+func (h *PersonalizeHandler) GetLatestNewsByUser(c *gin.Context) {
+	userID := c.Query("id")
+	from := helpers.ParseStringToInt32(c.Query("from"), 0)
+	size := helpers.ParseStringToInt32(c.Query("size"), 5)
+
+
+	fmt.Printf("query userID %v, from: %v size: %v\n", userID, from, size)
+
+	data, err := h.usecase.GetLatestNewsByUser(c.Request.Context(), userID, from, size)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
 }

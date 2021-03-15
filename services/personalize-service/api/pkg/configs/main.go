@@ -14,8 +14,13 @@ type ExtUserServiceConfig struct {
 	Endpoint string
 }
 
+type ExtNewsServiceConfig struct {
+	Endpoint string
+}
+
 // ServerConfig -
 type ServerConfig struct {
 	PersonalizeConfig PersonalizeConfig
 	ExtUserServiceConfig ExtUserServiceConfig
+	ExtNewsServiceConfig ExtNewsServiceConfig
 }

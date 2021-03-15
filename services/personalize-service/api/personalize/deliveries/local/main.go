@@ -26,11 +26,15 @@ func main() {
 		ExtUserServiceConfig: configs.ExtUserServiceConfig{
 			Endpoint: helpers.GetEnv("SERVICE_USER_ENDPOINT", "https://q1efoi7143.execute-api.ap-southeast-1.amazonaws.com/dev/users"),
 		},
+		ExtNewsServiceConfig: configs.ExtNewsServiceConfig{
+			Endpoint: helpers.GetEnv("SERVICE_NEWS_ENDPOINT", "http://localhost:3000/dev/news"),
+			// Endpoint: helpers.GetEnv("SERVICE_NEWS_ENDPOINT", "https://q1efoi7143.execute-api.ap-southeast-1.amazonaws.com/dev/news"),
+		},
 	}
 
 	router.Setup(r, config)
   // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
-	if err := r.Run(":3000"); err != nil { 
+	if err := r.Run(":8000"); err != nil { 
 		log.Printf("error starting server %+v", err)
 	}
 }

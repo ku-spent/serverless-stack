@@ -12,7 +12,8 @@ type Recommendation struct {
 
 // Pagination entity
 type Pagination struct {
-	Limit int32
+	From int32
+	Size int32
 }
 
 

@@ -109,7 +109,7 @@ functions:
       - http:
           method: GET
           path: /news
-          authorizer: ${self:custom.authorizer}
+          # authorizer: ${self:custom.authorizer}
           caching:
             enabled: true
             ttlInSeconds: 300

@@ -5,7 +5,7 @@ local:
 
 build:
 	export GO111MODULE=on
-	env GOOS=linux go build -ldflags="-s -w" -o bin/recommendation recommendation/deliveries/lambda/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/personalize personalize/deliveries/lambda/main.go
 
 clean:
 	rm -rf ./bin ./vendor go.sum

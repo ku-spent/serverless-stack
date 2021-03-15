@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./node_modules/.bin/serverless offline start --useDocker",
-    "dev": "nodemon --exec go run recommendation/deliveries/local/main.go --signal SIGTERM",
+    "dev": "nodemon --exec go run personalize/deliveries/local/main.go --signal SIGTERM",
     "watch": "nodemon --watch ./ -e go,js --exec make build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

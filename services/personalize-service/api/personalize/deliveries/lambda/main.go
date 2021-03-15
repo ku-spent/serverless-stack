@@ -34,6 +34,9 @@ func init() {
 		ExtUserServiceConfig: configs.ExtUserServiceConfig{
 			Endpoint: helpers.GetEnv("SERVICE_USER_ENDPOINT", "https://q1efoi7143.execute-api.ap-southeast-1.amazonaws.com/dev/users"),
 		},
+		ExtNewsServiceConfig: configs.ExtNewsServiceConfig{
+			Endpoint: helpers.GetEnv("SERVICE_NEWS_ENDPOINT", "https://q1efoi7143.execute-api.ap-southeast-1.amazonaws.com/dev/news"),
+		},
 	}
 
 	router.Setup(r, config)

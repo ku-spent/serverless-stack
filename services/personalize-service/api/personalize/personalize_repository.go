@@ -44,7 +44,7 @@ func(r *PersonalizeRepository) GetRecommendationByUser(ctx context.Context, user
 		CampaignArn: &r.CampaignArn,
 		FilterArn: &r.FilterArn,
 		FilterValues: filterValues,
-		NumResults: pagination.Limit,
+		NumResults: pagination.Size,
 	}
 	fmt.Printf("%+v\n", input)
 
@@ -62,3 +62,4 @@ func(r *PersonalizeRepository) GetRecommendationByUser(ctx context.Context, user
 
 	return recommendation, nil
 }
+

@@ -55,7 +55,7 @@ custom:
 
 functions:
   getRecommendationByUser:
-    handler: bin/recommendation
+    handler: bin/personalize
     events:
       - http:
           path: /personalize/{proxy+}

@@ -1,18 +1,26 @@
-import { Handler } from 'aws-lambda'
+import { APIGatewayEvent, Handler } from 'aws-lambda'
 import esb, { boolQuery, matchAllQuery, matchQuery, termQuery, termsQuery } from 'elastic-builder'
 import commonMiddleware from '../libs/commonMiddleware'
 import { esSearch } from '../libs/elasticsearch'
 
-const news: Handler = async (event, context) => {
-  const {
-    from = 0,
-    size = 5,
-    query,
-    queryField = '_',
-    filterCategories,
-    filterSources,
-    filterTags,
-  } = event?.queryStringParameters
+interface Event extends APIGatewayEvent {
+  queryStringParameters: {
+    from: string
+    size: string
+    query: string
+    queryField: string
+  }
+  multiValueQueryStringParameters: {
+    filterCategories: string[]
+    filterSources: string[]
+    filterTags: string[]
+  }
+}
+
+const news: Handler = async (event: Event, context) => {
+  const { from = 0, size = 5, query, queryField = '_' } = event.queryStringParameters
+
+  const { filterCategories, filterSources, filterTags } = event.multiValueQueryStringParameters
 
   let filterQuery = boolQuery().must(query ? matchQuery(queryField, query) : matchAllQuery())
   const filterObj = {
@@ -21,27 +29,23 @@ const news: Handler = async (event, context) => {
     tags: filterTags,
   }
 
-  try {
-    Object.keys(filterObj).map((field) => {
-      if (filterObj[field]) {
-        const parsedValues: string[] = JSON.parse(filterObj[field])
-        if (!(parsedValues instanceof Array)) return { statusCode: 400 }
-        filterQuery = filterQuery.mustNot(termsQuery().field(field).values(parsedValues))
-      }
-    })
-  } catch {
-    return { statusCode: 400 }
-  }
+  Object.keys(filterObj).map((field) => {
+    if (filterObj[field]) {
+      filterQuery = filterQuery.mustNot(termsQuery().field(field).values(filterObj[field]))
+    }
+  })
 
   const body = esb
     .requestBodySearch()
     .query(filterQuery)
     .sort(esb.sort('pubDate', 'desc'))
-    .from(from)
-    .size(size)
+    .from(+from)
+    .size(+size)
     .toJSON()
 
   const res = await esSearch(body)
+
+  console.log(res.hits)
 
   return {
     statusCode: 200,
