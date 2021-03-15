@@ -34,6 +34,7 @@ export interface SDK {
 export interface Attributes {
   news_id: string
   user_id: string
+  recommendation_id?: string
 }
 
 export interface Client {

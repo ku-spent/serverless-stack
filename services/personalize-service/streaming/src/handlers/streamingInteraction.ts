@@ -19,8 +19,9 @@ const formatPayload = async (payload: Payload) => {
     sessionId: payload.session.session_id,
     eventList: [
       {
-        sentAt: new Date(payload.event_timestamp),
         eventType: payload.event_type,
+        recommendationId: payload.attributes.recommendation_id,
+        sentAt: new Date(payload.event_timestamp),
         properties: ({ itemId: payload.attributes.news_id } as any) as PersonalizeEvents.Types.EventPropertiesJSON,
       },
     ],

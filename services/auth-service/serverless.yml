@@ -8,11 +8,27 @@ plugins:
   - serverless-plugin-typescript
   - serverless-offline
   - serverless-iam-roles-per-function
+  - serverless-layers
+  - serverless-deployment-bucket
 
 package:
   individually: true
 
-custom: ${file(../../serverless.common.yml):custom}
+custom:
+  stage: ${file(../../serverless.common.yml):custom.stage}
+  spentApp: ${file(../../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+  userPoolId: ${file(../../serverless.common.yml):custom.userPoolId}
+  authorizer: ${file(../../serverless.common.yml):custom.authorizer}
+  authorizerArn: ${file(../../serverless.common.yml):custom.authorizerArn}
+
+  dynamodbUserTableName: ${file(../../serverless.common.yml):custom.dynamodbUserTableName}
+
+  sns:
+    newUserTopic: !Ref NewUserTopic
+
+  serverless-layers:
+    dependenciesPath: ./package.json
 
 provider:
   name: aws
@@ -24,17 +40,30 @@ provider:
   tracing:
     apiGateway: true
     lambda: true
+  deploymentBucket:
+    name: ${self:service}-deployment-bucket
   environment:
     USER_TABLE_NAME: ${self:custom.dynamodbUserTableName}
+    SNS_NEW_USER_TOPIC: ${self:custom.sns.newUserTopic}
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
 
 resources:
+  - Resources:
+      NewUserTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+          TopicName: NewUser
+
   - Outputs:
       AuthorizerArn:
         Value: ${self:custom.authorizerArn}
         Export:
           Name: ${self:custom.stage}-ExtAuthorizerArn
+      NewUserTopicArn:
+        Value: ${self:custom.sns.newUserTopic}
+        Export:
+          Name: ${self:custom.spentApp}-ExtNewUserTopicArn
 
 functions:
   auth:
@@ -57,3 +86,7 @@ functions:
           - dynamodb:DeleteItem
           - dynamodb:DescribeTable
         Resource: 'arn:aws:dynamodb:ap-southeast-1:*:*'
+      - Effect: Allow
+        Action:
+          - sns:*
+        Resource: ${self:custom.sns.newUserTopic}

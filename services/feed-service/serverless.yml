@@ -40,13 +40,13 @@ provider:
   tracing:
     apiGateway: true
     lambda: true
+  deploymentBucket:
+    name: ${self:service}-deployment-bucket
   environment:
     TREND_LAMBDA_NAME: !ImportValue ${self:custom.stage}-ExtLatestTrendingName
     ES_INDEX: rss-feed-3
     USERPOOL_ID: ${self:custom.userPoolId}
     ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
-  deploymentBucket:
-    name: ${self:service}-deployment-bucket
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
     - Effect: Allow
@@ -100,7 +100,7 @@ functions:
     events:
       - http:
           method: GET
-          path: /news/similar
+          path: /news/related
           authorizer: ${self:custom.authorizer}
 
   news:
@@ -128,7 +128,7 @@ functions:
           authorizer: ${self:custom.authorizer}
 
   trending:
-    handler: src/handlers/trending.handler
+    handler: src/handlers/trends/trending.handler
     timeout: 10
     events:
       - http:
@@ -141,3 +141,19 @@ functions:
             cacheKeyParameters:
               - name: request.querystring.from
               - name: request.querystring.size
+
+  releatedInTrend:
+    handler: src/handlers/trends/relatedInTrend.handler
+    timeout: 10
+    events:
+      - http:
+          method: GET
+          path: /trending/related
+          authorizer: ${self:custom.authorizer}
+          caching:
+            enabled: true
+            ttlInSeconds: 300
+            cacheKeyParameters:
+              - name: request.querystring.from
+              - name: request.querystring.size
+              - name: request.querystring.trend

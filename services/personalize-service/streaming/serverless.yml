@@ -11,6 +11,9 @@ plugins:
   - serverless-plugin-typescript
   - serverless-dotenv-plugin
   - serverless-iam-roles-per-function
+  - serverless-layers
+  - serverless-offline
+  - serverless-deployment-bucket
   - '@agiledigital/serverless-sns-sqs-lambda'
 
 package:
@@ -21,9 +24,11 @@ custom:
     trackingID: ${env:PERSONALIZE_TRACKING_ID}
     datasetARN: ${env:PERSONALIZE_DATASET_ARN}
     datasetItemARN: ${env:PERSONALIZE_DATASET_ITEM_ARN}
+    datasetUserARN: ${env:PERSONALIZE_DATASET_USER_ARN}
 
   sns:
     crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
+    newUserTopicArn: !ImportValue ${self:custom.spentApp}-ExtNewUserTopicArn
 
   serverless-layers:
     dependenciesPath: ./package.json
@@ -42,66 +47,70 @@ provider:
     PERSONALIZE_TRACKING_ID: ${custom:personalize.trackingID}
     PERSONALIZE_DATASET_ARN: ${custom:personalize.datasetARN}
     PERSONALIZE_DATASET_ITEM_ARN: ${custom:personalize.datasetItemARN}
+    PERSONALIZE_DATASET_USER_ARN: ${custom:personalize.datasetUserARN}
+  deploymentBucket:
+    name: ${self:service}-deployment-bucket
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - personalize:PutEvents
+        - personalize:PutUsers
         - personalize:PutItems
+        - personalize:PutEvents
       Resource:
         - '*'
 
 resources:
   Resources:
-    PintpointKinesisDataStream:
-      Type: AWS::Kinesis::Stream
-      Properties:
-        Name: ${self:custom.spentApp}-pinpoint-kinesis-datastream
-        ShardCount: 1
-    PinpointKinesisRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: ${self:custom.spentApp}-pinpoint-kinesis-datastream-role
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: pinpoint.amazonaws.com
-              Action:
-                - sts:AssumeRole
-        Policies:
-          - PolicyName: 'PinpointKinisisDataStream'
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - kinesis:PutRecords
-                    - kinesis:DescribeStream
-                  Resource:
-                    - !GetAtt PintpointKinesisDataStream.Arn
-  Outputs:
-    PintpointKinesisDataStreamArn:
-      Value: !GetAtt PintpointKinesisDataStream.Arn
-      Export:
-        Name: ${self:custom.spentApp}-ExtPintpointKinesisDataStreamArn
-    PinpointKinesisRoleArn:
-      Value: !GetAtt PinpointKinesisRole.Arn
-      Export:
-        Name: ${self:custom.spentApp}-ExtPinpointKinesisRoleArn
+  #   PintpointKinesisDataStream:
+  #     Type: AWS::Kinesis::Stream
+  #     Properties:
+  #       Name: ${self:custom.spentApp}-pinpoint-kinesis-datastream
+  #       ShardCount: 1
+  #   PinpointKinesisRole:
+  #     Type: AWS::IAM::Role
+  #     Properties:
+  #       RoleName: ${self:custom.spentApp}-pinpoint-kinesis-datastream-role
+  #       AssumeRolePolicyDocument:
+  #         Version: '2012-10-17'
+  #         Statement:
+  #           - Effect: Allow
+  #             Principal:
+  #               Service: pinpoint.amazonaws.com
+  #             Action:
+  #               - sts:AssumeRole
+  #       Policies:
+  #         - PolicyName: 'PinpointKinisisDataStream'
+  #           PolicyDocument:
+  #             Version: '2012-10-17'
+  #             Statement:
+  #               - Effect: Allow
+  #                 Action:
+  #                   - kinesis:PutRecords
+  #                   - kinesis:DescribeStream
+  #                 Resource:
+  #                   - !GetAtt PintpointKinesisDataStream.Arn
+  # Outputs:
+  #   PintpointKinesisDataStreamArn:
+  #     Value: !GetAtt PintpointKinesisDataStream.Arn
+  #     Export:
+  #       Name: ${self:custom.spentApp}-ExtPintpointKinesisDataStreamArn
+  #   PinpointKinesisRoleArn:
+  #     Value: !GetAtt PinpointKinesisRole.Arn
+  #     Export:
+  #       Name: ${self:custom.spentApp}-ExtPinpointKinesisRoleArn
 
 functions:
   streamingPersonalizeInteractions:
     handler: src/handlers/streamingInteraction.handler
     events:
-      - stream:
-          type: kinesis
-          arn: !GetAtt PintpointKinesisDataStream.Arn
-          consumer: true
-          batchSize: 5
-          batchWindow: 3
-          startingPosition: LATEST
-          enabled: true
+      # - stream:
+      #     type: kinesis
+      #     arn: !GetAtt PintpointKinesisDataStream.Arn
+      #     consumer: true
+      #     batchSize: 5
+      #     batchWindow: 3
+      #     startingPosition: LATEST
+      #     enabled: false
   streamingPersonalizeItems:
     handler: src/handlers/streamingItems.handler
     events:
@@ -114,3 +123,12 @@ functions:
           filterPolicy: # Optional - filter messages that are handled
             crawlType:
               - news
+  streamingPersonalizeUsers:
+    handler: src/handlers/streamingUsers.handler
+    events:
+      - snsSqs:
+          name: streamingUsers
+          prefix: 'personalize_streaming'
+          topicArn: ${self:custom.sns.newUserTopicArn} # Required - SNS topic to subscribe to
+          batchSize: 10 # Optional - default value is 10
+          maxRetryCount: 2 # Optional - default value is 5

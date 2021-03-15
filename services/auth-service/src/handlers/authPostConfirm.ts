@@ -1,3 +1,4 @@
+import { SNS_NEW_USER_TOPIC } from './config'
 import { Handler } from 'aws-lambda'
 import * as AWS from 'aws-sdk'
 import { v4 as uuidv4 } from 'uuid'
@@ -6,24 +7,23 @@ import { v4 as uuidv4 } from 'uuid'
 // const COGNITO_USERPOOL_ID = process.env.COGNITO_USERPOOL_ID || ''
 const dynamoDb = new AWS.DynamoDB.DocumentClient()
 
+const snsClient = new AWS.SNS({ apiVersion: '2010-03-31' })
+
 const table = process.env.USER_TABLE_NAME || ''
 
 console.log('Initial Auth post confirm trigger')
 
 export const handler: Handler = async (event, context, callback) => {
-  const { sub, name, picture, email } = event.request.userAttributes
+  // const { sub, name, picture, email } = event.request.userAttributes
+  console.log(event.request.userAttributes)
+
+  const payload = { payload: event.request.userAttributes }
   const params = {
-    TableName: table,
-    Item: {
-      id: sub,
-      name,
-      picture,
-      email,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
+    Message: JSON.stringify(payload) /* required */,
+    TopicArn: SNS_NEW_USER_TOPIC,
   }
-  await dynamoDb.put(params).promise()
+  const res = await snsClient.publish(params).promise()
+  console.log(JSON.stringify(res))
   callback(null, event)
 }
 

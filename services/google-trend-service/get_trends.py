@@ -57,7 +57,8 @@ def get_trends():
     print('crawling thairath trending')
     raw_html = get_raw_html('https://www.thairath.co.th/tags/trending')
     soup = BeautifulSoup(raw_html, 'html.parser')
-    tags = soup.find('main').find('div').find_all('div', recursive=False)[2].find_all('div')[5].find_all('a')
+    # print(soup.find_all('div', class_="dropdown")[1].find_all('a'))
+    tags = soup.find_all('div', class_="dropdown")[1].find_all('a')
     trends = [(tag.get_text(), tag['href']) for tag in tags]
 
     print('crawling thairath home')

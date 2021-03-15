@@ -32,6 +32,8 @@ const putItemsEvent = async (newsList: News[]) => {
     itemId: news.id,
     properties: ({
       category: news.category,
+      tags: news.tags.join('|'),
+      source: news.source,
       creationTimestamp: Math.floor(Date.parse(news.pubDate) / 1000),
     } as any) as PersonalizeEvents.Types.ItemProperties,
   }))
