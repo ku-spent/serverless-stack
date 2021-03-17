@@ -14,12 +14,15 @@ plugins:
 package:
   individually: true
 
-custom: ${file(../serverless.common.yml):custom}
+custom:
+  stage: ${file(../serverless.common.yml):custom.stage}
+  spentApp: ${file(../serverless.common.yml):custom.spentApp}
+  spentAppMapping: ${file(../serverless.common.yml):custom.spentAppMapping}
 
 provider:
   name: aws
   runtime: nodejs12.x
-  memorySize: 256
+  memorySize: 128
   stage: ${opt:stage, 'dev'}
   region: ap-southeast-1
 

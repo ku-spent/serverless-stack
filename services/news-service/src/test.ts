@@ -1,4 +1,7 @@
-export default {
+import { Context } from 'aws-lambda'
+import { handler } from './dynamodbConsumer'
+
+const event = {
   Records: [
     {
       messageId: '6c62d6e7-e34c-4e3b-8406-dca5eff08fc6',
@@ -21,3 +24,7 @@ export default {
     },
   ],
 }
+
+handler(event, {} as Context, () => {})
+
+export default event

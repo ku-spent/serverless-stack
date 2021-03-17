@@ -357,4 +357,4 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
     users_df, news_df = generate_user_items(out_users_filename, out_items_filename, IN_USERS_FILENAME, IN_PRODUCTS_FILENAME)
-    generate_interactions(out_interactions_filename, users_df, news_df)
+    # generate_interactions(out_interactions_filename, users_df, news_df)

@@ -1,0 +1,15 @@
+Resources:
+  News:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: News
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      # BillingMode: 'PAY_PER_REQUEST'
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2

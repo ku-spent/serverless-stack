@@ -9,14 +9,14 @@ plugins:
   - serverless-plugin-typescript
   - serverless-iam-roles-per-function
   - '@agiledigital/serverless-sns-sqs-lambda'
-
+  - serverless-dynamodb-autoscaling
 package:
   individually: true
 
 provider:
   name: aws
   runtime: nodejs12.x
-  memorySize: 128
+  memorySize: 256
   stage: ${opt:stage, 'dev'}
   versionFunctions: false
   region: ap-southeast-1
@@ -26,9 +26,17 @@ provider:
   environment:
     ES_HOST: !ImportValue ${self:custom.spentApp}-ExtElasticsearchEndpoint
     ES_INDEX: rss-feed-3
+    NEWS_TABLE_NAME: News
 
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: '*'
     - Effect: Allow
       Action:
         - es:*
@@ -40,19 +48,27 @@ provider:
             - '/*'
 
 custom:
-  crawConfig:
-    timeout: 120
-    rate: rate(10 minutes)
-
-  es:
-    webIndex: 'rss-feed-3'
-
-  sns:
-    crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
-
   stage: ${file(../../serverless.common.yml):custom.stage}
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
+
+  crawConfig:
+    timeout: 120
+    rate: rate(10 minutes)
+  es:
+    webIndex: 'rss-feed-3'
+  sns:
+    crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
+  capacities:
+    - table: News
+      read:
+        minimum: 2 # Minimum read capacity
+        maximum: 15 # Maximum read capacity
+        usage: 0.5 # Targeted usage percentage
+      write:
+        minimum: 2 # Minimum write capacity
+        maximum: 15 # Maximum write capacity
+        usage: 0.5 # Targeted usage percentage
   lambdaIam:
     - Effect: Allow
       Action:
@@ -68,7 +84,21 @@ custom:
           - - !ImportValue ${self:custom.spentApp}-ExtElasticsearchArn
             - '/*'
 
+resources:
+  - ${file(resources/Dynamodb.yml)}
+
 functions:
+  dynamodbConsumer:
+    handler: 'src/dynamodbConsumer.handler'
+    events:
+      - snsSqs:
+          name: dynamodbConsumer # Required - choose a name prefix for the event queue
+          topicArn: ${self:custom.sns.crawlerTopicArn} # Required - SNS topic to subscribe to
+          batchSize: 10 # Optional - default value is 10
+          maxRetryCount: 2 # Optional - default value is 5
+          filterPolicy: # Optional - filter messages that are handled
+            crawlType:
+              - news
   crawlerConsumer:
     handler: 'src/crawlerConsumer.handler'
     events:
