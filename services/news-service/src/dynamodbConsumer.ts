@@ -30,7 +30,7 @@ export const handler: Handler = async (event: SQSEvent, context: Context) => {
         category: { S: category },
         image: { S: image },
         raw_html_content: { S: raw_html_content },
-        tags: { SS: tags },
+        ...(tags.length > 0 && { tags: { SS: tags } }),
       }
       return dynamodb.putItem({ Item: item, TableName: 'News' }).promise()
     })
