@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/personalizeruntime"
+	"github.com/ku-spent/serverless-stack/personalize-service/api/pkg/configs"
 	"github.com/ku-spent/serverless-stack/personalize-service/api/pkg/helpers"
+	"github.com/thoas/go-funk"
 )
 
 // PersonalizeRepository -
@@ -33,10 +35,13 @@ func NewPersonalizeRepository(client *personalizeruntime.Client, campaignArn str
 
 // GetRecommendationByUser personalize recommendation by userID
 func(r *PersonalizeRepository) GetRecommendationByUser(ctx context.Context, userID string, personalizeFilter PersonalizeFilter, pagination Pagination) (*Recommendation, error) {
+	
+	categories, _ := funk.DifferenceString(configs.AllNewsCategories, personalizeFilter.Categories)
+
 	filterValues := map[string]string{
-		"tags": helpers.FormatSliceToPersonalizeFilter(personalizeFilter.Tags),
-		"sources": helpers.FormatSliceToPersonalizeFilter(personalizeFilter.Sources),
-		"categories": helpers.FormatSliceToPersonalizeFilter(personalizeFilter.Categories),
+		"categories": helpers.FormatSliceToPersonalizeFilter(categories),
+		"blockTags": helpers.FormatSliceToPersonalizeFilter(personalizeFilter.Tags),
+		"blockSources": helpers.FormatSliceToPersonalizeFilter(personalizeFilter.Sources),
 	}
 
 	input := &personalizeruntime.GetRecommendationsInput{

@@ -15,6 +15,8 @@ const search: Handler = async (event, context) => {
           esb
             .boolQuery()
             .must(esb.multiMatchQuery().query(q).fields(['title', 'summary', 'tags']).operator('or'))
+            .should(esb.matchPhraseQuery().field('title').query(q).boost(3))
+            .should(esb.matchPhraseQuery().field('summary').query(q).boost(2))
             .should(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('or').type('phrase').boost(4))
             .should(esb.multiMatchQuery().query(q).fields(['title', 'summary']).operator('and').boost(2))
             .should(esb.matchQuery('tags').query(q).boost(10))

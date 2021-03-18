@@ -63,7 +63,7 @@ func FormatSliceToPersonalizeFilter(strList []string) string {
 	}
 
 	// escape blackslash double quote => \"
-	bdq := "\\\""
+	dq := "\""
 
-	return "\"" + strings.Join(strList, bdq + "," + bdq) + "\""
+	return dq + strings.Join(strList, dq + "," + dq) + dq
 }
