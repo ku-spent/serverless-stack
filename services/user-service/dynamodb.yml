@@ -1,0 +1,14 @@
+Resources:
+  Following:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Following
+      AttributeDefinitions:
+        - AttributeName: userID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userID
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2

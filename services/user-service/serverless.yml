@@ -9,6 +9,7 @@ plugins:
   - serverless-offline
   - serverless-pseudo-parameters
   - serverless-dotenv-plugin
+  - serverless-dynamodb-autoscaling
 
 package:
   individually: true
@@ -32,11 +33,13 @@ provider:
   environment:
     DYNAMODB_TABLE_HISTORY: ${custom:dynamodb.tableHistory}
     DYNAMODB_TABLE_BLOCK: ${custom:dynamodb.tableBlock}
+    DYNAMODB_TABLE_FOLLOWING: ${custom:dynamodb.tableFollowing}
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - 'dynamodb:Scan'
-        - 'dynamodb:Query'
+        - 'dynamodb:*'
+        # - 'dynamodb:Scan'
+        # - 'dynamodb:Query'
       Resource:
         - '*'
 
@@ -45,9 +48,24 @@ custom:
   spentApp: ${file(../../serverless.common.yml):custom.spentApp}
   spentAppMapping: ${file(../../serverless.common.yml):custom.spentAppMapping}
 
+  capacities:
+    - table: Following
+      read:
+        minimum: 2 # Minimum read capacity
+        maximum: 15 # Maximum read capacity
+        usage: 0.5 # Targeted usage percentage
+      write:
+        minimum: 2 # Minimum write capacity
+        maximum: 15 # Maximum write capacity
+        usage: 0.5 # Targeted usage percentage
+
   dynamodb:
     tableHistory: ${env:DYNAMODB_TABLE_HISTORY}
     tableBlock: ${env:DYNAMODB_TABLE_BLOCK}
+    tableFollowing: ${env:DYNAMODB_TABLE_FOLLOWING}
+
+resources:
+  - ${file(dynamodb.yml)}
 
 functions:
   users:

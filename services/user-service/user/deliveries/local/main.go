@@ -16,7 +16,7 @@ func main() {
 
 	router.Setup(r)
   // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
-	if err := r.Run(":3000"); err != nil { 
+	if err := r.Run(":8000"); err != nil { 
 		log.Printf("error starting server %+v", err)
 	}
 }

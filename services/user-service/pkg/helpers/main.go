@@ -24,3 +24,8 @@ func ParseStringToInt32(val string, defaultValue int32) int32 {
 	}
 	return int32(parsedVal)
 }
+
+// CreateString -
+func CreateString(val string) *string {
+	return &val
+}
