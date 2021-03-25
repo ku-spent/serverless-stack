@@ -4,11 +4,23 @@ import { ES_INDEX } from '../constant'
 import commonMiddleware from '../libs/commonMiddleware'
 import { esSearch } from '../libs/elasticsearch'
 
+const getDocById = async (id: string) => {
+  const requestBody = esb.requestBodySearch().query(esb.matchQuery().field('id').query(id)).size(1).toJSON()
+  const res = await esSearch(requestBody)
+  return res.hits.hits.length > 0 ? res.hits.hits[0] : null
+}
+
 const similar: Handler = async (event, context) => {
-  const { from = 0, size = 5, _id } = event?.queryStringParameters
+  const { from = 0, size = 5, id } = event?.queryStringParameters
 
-  const searchDoc = { _index: ES_INDEX, _id }
+  const doc = await getDocById(id)
 
+  if (!doc)
+    return {
+      statusCode: 404,
+    }
+
+  const searchDoc = { _index: ES_INDEX, _id: doc._id }
   const body = esb
     .requestBodySearch()
     .query(
@@ -18,15 +30,10 @@ const similar: Handler = async (event, context) => {
           esb
             .boolQuery()
             .should([
-              esb
-                .moreLikeThisQuery()
-                .fields(['title', 'sumamry', 'tag'])
-                .like(searchDoc)
-                .minTermFreq(1)
-                .maxQueryTerms(12)
-                .boost(2),
-              esb.moreLikeThisQuery().fields(['category']).like(searchDoc).minTermFreq(1).maxQueryTerms(12).boost(10),
+              esb.moreLikeThisQuery().fields(['title', 'sumamry']).like(searchDoc).boost(4),
+              esb.moreLikeThisQuery().fields(['category']).like(searchDoc).minTermFreq(1).maxQueryTerms(12).boost(2),
             ])
+            .should((doc['_source'] as any)['tags'].map((tag: string) => esb.termQuery('tags', tag).boost(4)))
         )
         .functions([
           esb.weightScoreFunction().filter(esb.rangeQuery('pubDate').gte('now-7d').lt('now')).weight(5),

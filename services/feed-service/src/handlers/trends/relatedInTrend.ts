@@ -26,7 +26,7 @@ const relatedInTrend: Handler = async (event: Event, context) => {
       body: JSON.stringify({ data: res }),
     }
   } else {
-    return { statusCode: 404 }
+    return { statusCode: 200, body: JSON.stringify({ data: null }) }
   }
 }
 

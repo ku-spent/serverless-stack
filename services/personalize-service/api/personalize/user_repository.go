@@ -24,7 +24,6 @@ func (r *UserRepository) GetHistoriesByUserID(ctx context.Context, userID string
 	var resp struct{Data []History	`json:"data"`}
 	endpoint := fmt.Sprintf("/%s/histories?limit=%d", userID, pagination.Size)
 	err := helpers.GetHTTPJson(r.UserEndpoint + endpoint, &resp)
-
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +36,6 @@ func (r *UserRepository) 	GetBlocksByUserID(ctx context.Context, userID string, 
 	var resp struct{Data []Block	`json:"data"`}
 	endpoint := fmt.Sprintf("/%s/blocks?limit=%d", userID, pagination.Size)
 	err := helpers.GetHTTPJson(r.UserEndpoint + endpoint, &resp)
-
 	if err != nil {
 		return nil, err
 	}

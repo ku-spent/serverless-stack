@@ -1,4 +1,3 @@
-import { elasticClient } from './libs/elasticsearch'
 import { Handler, Context, SQSEvent } from 'aws-lambda'
 import { DynamoDB } from 'aws-sdk'
 import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb'
@@ -9,6 +8,8 @@ interface Message {
   payload: any
 }
 
+const tableName = process.env.TABLE_NAME || ''
+
 const dynamodb = new DynamoDB({ apiVersion: '2012-08-10', region: 'ap-southeast-1' })
 
 export const handler: Handler = async (event: SQSEvent, context: Context) => {
@@ -18,10 +19,9 @@ export const handler: Handler = async (event: SQSEvent, context: Context) => {
 
   const res = await Promise.all(
     messages.map(({ hash, payload }) => {
-      const { url, title, image, summary, source, pubDate, category, raw_html_content, tags } = payload
-      console.log(payload)
+      const { id, url, title, image, summary, source, pubDate, category, raw_html_content, tags } = payload
       const item: PutItemInputAttributeMap = {
-        id: { S: hash },
+        id: { S: id },
         url: { S: url },
         title: { S: title },
         summary: { S: summary },
@@ -30,9 +30,11 @@ export const handler: Handler = async (event: SQSEvent, context: Context) => {
         category: { S: category },
         image: { S: image },
         raw_html_content: { S: raw_html_content },
+        type: { S: 'news' },
         ...(tags.length > 0 && { tags: { SS: tags } }),
       }
-      return dynamodb.putItem({ Item: item, TableName: 'News' }).promise()
+      console.log(item)
+      return dynamodb.putItem({ Item: item, TableName: tableName }).promise()
     })
   )
 

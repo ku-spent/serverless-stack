@@ -142,6 +142,7 @@ def generate_user_items(out_users_filename, out_items_filename, in_users_filenam
     # news_df['category'] = news_df['category'].apply(lambda c: map_category[c])
     # news_df = news_df.groupby('category').apply(lambda s: s.sample(90, replace=False))
     news_df = news_df[news_df['pubDate'] > (datetime.now() - timedelta(days=12)).isoformat()]
+    # news_df['type'] = 'news'
     news_df = news_df.drop_duplicates(['id'])
     news_df['timestamp'] = news_df['pubDate'].apply(lambda dt: int(parse(dt).timestamp()))
     news_df.to_csv(out_items_raw_filename, index=False, encoding='utf-8')

@@ -59,16 +59,16 @@ custom:
     webIndex: 'rss-feed-3'
   sns:
     crawlerTopicArn: !ImportValue ${self:custom.spentApp}-ExtCrawlerTopicArn
-  capacities:
-    - table: News
-      read:
-        minimum: 2 # Minimum read capacity
-        maximum: 15 # Maximum read capacity
-        usage: 0.5 # Targeted usage percentage
-      write:
-        minimum: 2 # Minimum write capacity
-        maximum: 15 # Maximum write capacity
-        usage: 0.5 # Targeted usage percentage
+  # capacities:
+  #   - table: News
+  #     read:
+  #       minimum: 2 # Minimum read capacity
+  #       maximum: 15 # Maximum read capacity
+  #       usage: 0.5 # Targeted usage percentage
+  #     write:
+  #       minimum: 2 # Minimum write capacity
+  #       maximum: 15 # Maximum write capacity
+  #       usage: 0.5 # Targeted usage percentage
   lambdaIam:
     - Effect: Allow
       Action:
@@ -89,6 +89,21 @@ resources:
 
 functions:
   dynamodbConsumer:
+    environment:
+      TABLE_NAME: News
+    handler: 'src/dynamodbConsumer.handler'
+    events:
+      - snsSqs:
+          name: dynamodbConsumer # Required - choose a name prefix for the event queue
+          topicArn: ${self:custom.sns.crawlerTopicArn} # Required - SNS topic to subscribe to
+          batchSize: 10 # Optional - default value is 10
+          maxRetryCount: 2 # Optional - default value is 5
+          filterPolicy: # Optional - filter messages that are handled
+            crawlType:
+              - news
+  dynamodbConsumer2:
+    environment:
+      TABLE_NAME: News2
     handler: 'src/dynamodbConsumer.handler'
     events:
       - snsSqs:

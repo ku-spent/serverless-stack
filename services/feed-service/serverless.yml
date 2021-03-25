@@ -60,6 +60,10 @@ provider:
             - '/*'
     - Effect: Allow
       Action:
+        - dynamodb:*
+      Resource: '*'
+    - Effect: Allow
+      Action:
         - lambda:InvokeFunction
       Resource: !ImportValue ${self:custom.stage}-ExtLatestTrendingArn
 
@@ -97,14 +101,26 @@ functions:
 
   similarNews:
     handler: src/handlers/similar.handler
+    memorySize: 128
     events:
       - http:
           method: GET
           path: /news/related
           authorizer: ${self:custom.authorizer}
 
+  newsID:
+    handler: src/handlers/newsByID.handler
+    memorySize: 128
+    timeout: 20
+    events:
+      - http:
+          method: GET
+          path: /news2/{id}
+
   news:
     handler: src/handlers/news.handler
+    memorySize: 128
+    timeout: 20
     events:
       - http:
           method: GET
@@ -119,8 +135,28 @@ functions:
               - name: request.querystring.from
               - name: request.querystring.size
 
+  news2:
+    handler: src/handlers/news2.handler
+    memorySize: 128
+    timeout: 20
+    events:
+      - http:
+          method: GET
+          path: /news2
+          # authorizer: ${self:custom.authorizer}
+          caching:
+            enabled: true
+            ttlInSeconds: 300
+            cacheKeyParameters:
+              - name: request.querystring.query
+              - name: request.querystring.queryField
+              - name: request.querystring.from
+              - name: request.querystring.size
+              - name: request.querystring.lastEvaluatedKey
+
   search:
     handler: src/handlers/search.handler
+    memorySize: 128
     events:
       - http:
           method: GET

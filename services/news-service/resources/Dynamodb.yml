@@ -1,4 +1,103 @@
 Resources:
+  # News2:
+  #   Type: AWS::DynamoDB::Table
+  #   Properties:
+  #     TableName: News2
+  #     AttributeDefinitions:
+  #       - AttributeName: id
+  #         AttributeType: S
+  #       - AttributeName: date
+  #         AttributeType: S
+  #       - AttributeName: pubDate
+  #         AttributeType: S
+  #       - AttributeName: source
+  #         AttributeType: S
+  #       - AttributeName: category
+  #         AttributeType: S
+
+  #     KeySchema:
+  #       - AttributeName: id
+  #         KeyType: HASH
+  #       # - AttributeName: pubDate
+  #       #   KeyType: RANGE
+  #     GlobalSecondaryIndexes:
+  #       - IndexName: LatestNews
+  #         KeySchema:
+  #           - AttributeName: date
+  #             KeyType: HASH
+  #           - AttributeName: pubDate
+  #             KeyType: RANGE
+  #         Projection:
+  #           ProjectionType: 'ALL'
+  #       - IndexName: LatestNewsOnCategory
+  #         KeySchema:
+  #           - AttributeName: category
+  #             KeyType: HASH
+  #           - AttributeName: pubDate
+  #             KeyType: RANGE
+  #         Projection:
+  #           ProjectionType: 'ALL'
+  #       - IndexName: LatestNewsOnSource
+  #         KeySchema:
+  #           - AttributeName: source
+  #             KeyType: HASH
+  #           - AttributeName: pubDate
+  #             KeyType: RANGE
+  #         Projection:
+  #           ProjectionType: 'ALL'
+  #       - IndexName: LatestNewsOnTag
+  #         KeySchema:
+  #           - AttributeName: month
+  #             KeyType: HASH
+  #           - AttributeName: pubDate
+  #             KeyType: RANGE
+  #         Projection:
+  #           ProjectionType: 'ALL'
+  #     BillingMode: 'PAY_PER_REQUEST'
+  News2:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: News2
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+        - AttributeName: pubDate
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+        - AttributeName: source
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: LatestNews
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+            - AttributeName: pubDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: LatestNewsOnCategory
+          KeySchema:
+            - AttributeName: category
+              KeyType: HASH
+            - AttributeName: pubDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: LatestNewsOnSources
+          KeySchema:
+            - AttributeName: source
+              KeyType: HASH
+            - AttributeName: pubDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: 'PAY_PER_REQUEST'
   News:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -9,7 +108,7 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-      # BillingMode: 'PAY_PER_REQUEST'
-      ProvisionedThroughput:
-        ReadCapacityUnits: 2
-        WriteCapacityUnits: 2
+      BillingMode: 'PAY_PER_REQUEST'
+      # ProvisionedThroughput:
+      #   ReadCapacityUnits: 2
+      #   WriteCapacityUnits: 2

@@ -3,9 +3,9 @@ import csv
 
 dynamodb = boto3.resource('dynamodb')
 
-tableName = 'News'
+tableName = 'News2'
 csv_file_name = 'items_raw.csv'
-batch_size = 9
+batch_size = 2000
 batch = []
 
 
@@ -39,7 +39,8 @@ with open(csv_file_name, newline='') as csv_file:
             batch.clear()
 
         batch.append(row)
-        # break
+        # if(i==10):
+        #     break
 
     if len(batch) > 0:
         write_to_dynamo(batch)
