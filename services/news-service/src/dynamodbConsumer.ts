@@ -8,7 +8,7 @@ interface Message {
   payload: any
 }
 
-const tableName = process.env.TABLE_NAME || ''
+const tableName = process.env.TABLE_NAME || 'News2'
 
 const dynamodb = new DynamoDB({ apiVersion: '2012-08-10', region: 'ap-southeast-1' })
 

@@ -1,4 +1,5 @@
 import { Handler } from 'aws-lambda'
+import { WorkDocs } from 'aws-sdk'
 import esb from 'elastic-builder'
 import { ES_INDEX } from '../constant'
 import commonMiddleware from '../libs/commonMiddleware'
@@ -46,7 +47,9 @@ const similar: Handler = async (event, context) => {
     .size(size)
     .toJSON()
 
-  const res = await esSearch(body)
+  let res = await esSearch(body)
+
+  res.hits.hits = res.hits.hits.filter((item) => item._id != doc._id)
 
   return {
     statusCode: 200,

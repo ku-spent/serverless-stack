@@ -157,11 +157,12 @@ functions:
   search:
     handler: src/handlers/search.handler
     memorySize: 128
+    timeout: 15
     events:
       - http:
           method: GET
           path: /search
-          authorizer: ${self:custom.authorizer}
+          # authorizer: ${self:custom.authorizer}
 
   trending:
     handler: src/handlers/trends/trending.handler

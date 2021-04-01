@@ -5,7 +5,7 @@ dynamodb = boto3.resource('dynamodb')
 
 tableName = 'News2'
 csv_file_name = 'items_raw.csv'
-batch_size = 2000
+batch_size = 200
 batch = []
 
 
